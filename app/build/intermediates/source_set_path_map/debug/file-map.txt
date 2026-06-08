@@ -1,0 +1,72 @@
+com.smafty.synapsekeyboard.app-annotation-experimental-1.4.1-0 C:\Users\ANNAS\.gradle\caches\transforms-3\04c2d786701ad4af6eb897a4f3326989\transformed\annotation-experimental-1.4.1\res
+com.smafty.synapsekeyboard.app-fragment-1.5.7-1 C:\Users\ANNAS\.gradle\caches\transforms-3\0a73050bf122266057a678f64582235a\transformed\fragment-1.5.7\res
+com.smafty.synapsekeyboard.app-ui-release-2 C:\Users\ANNAS\.gradle\caches\transforms-3\0f2fa185886b9bf459d6762fb4f7adef\transformed\ui-release\res
+com.smafty.synapsekeyboard.app-lifecycle-livedata-core-2.8.6-3 C:\Users\ANNAS\.gradle\caches\transforms-3\11f9ab23c2be21b399731ce47d047923\transformed\lifecycle-livedata-core-2.8.6\res
+com.smafty.synapsekeyboard.app-lifecycle-runtime-release-4 C:\Users\ANNAS\.gradle\caches\transforms-3\14259dfbcc2579f5ff11db375e949323\transformed\lifecycle-runtime-release\res
+com.smafty.synapsekeyboard.app-room-runtime-2.6.1-5 C:\Users\ANNAS\.gradle\caches\transforms-3\15d0838e554fb5bd89f27c336f4a5e53\transformed\room-runtime-2.6.1\res
+com.smafty.synapsekeyboard.app-core-runtime-2.2.0-6 C:\Users\ANNAS\.gradle\caches\transforms-3\165b66ed4a5a871cbc52d6b7e96d8b24\transformed\core-runtime-2.2.0\res
+com.smafty.synapsekeyboard.app-ui-geometry-release-7 C:\Users\ANNAS\.gradle\caches\transforms-3\16cdaf606b6affdf45118548d1a3702a\transformed\ui-geometry-release\res
+com.smafty.synapsekeyboard.app-savedstate-ktx-1.2.1-8 C:\Users\ANNAS\.gradle\caches\transforms-3\245be2aaa96131f671e8bc75c41b841f\transformed\savedstate-ktx-1.2.1\res
+com.smafty.synapsekeyboard.app-foundation-release-9 C:\Users\ANNAS\.gradle\caches\transforms-3\2b42ec302001b1d1fc31757a3db1c0fb\transformed\foundation-release\res
+com.smafty.synapsekeyboard.app-emoji2-views-helper-1.3.0-10 C:\Users\ANNAS\.gradle\caches\transforms-3\2b950009d308d1fac933356c52c98e28\transformed\emoji2-views-helper-1.3.0\res
+com.smafty.synapsekeyboard.app-lifecycle-livedata-2.8.6-11 C:\Users\ANNAS\.gradle\caches\transforms-3\2c437d7f50c043688277b3aa9f2ac38b\transformed\lifecycle-livedata-2.8.6\res
+com.smafty.synapsekeyboard.app-foundation-layout-release-12 C:\Users\ANNAS\.gradle\caches\transforms-3\306b1108ebf1abc3928369903c7d8491\transformed\foundation-layout-release\res
+com.smafty.synapsekeyboard.app-ui-tooling-preview-release-13 C:\Users\ANNAS\.gradle\caches\transforms-3\3368e9e1b3ee30bae4120822211e44aa\transformed\ui-tooling-preview-release\res
+com.smafty.synapsekeyboard.app-credentials-play-services-auth-1.3.0-14 C:\Users\ANNAS\.gradle\caches\transforms-3\360df5f9057d7349065c59516d05c454\transformed\credentials-play-services-auth-1.3.0\res
+com.smafty.synapsekeyboard.app-runtime-release-15 C:\Users\ANNAS\.gradle\caches\transforms-3\370a395661563379c14cbd2f3258b2db\transformed\runtime-release\res
+com.smafty.synapsekeyboard.app-ui-text-google-fonts-1.6.5-16 C:\Users\ANNAS\.gradle\caches\transforms-3\38ed1e943dba06faa88406dae37468ec\transformed\ui-text-google-fonts-1.6.5\res
+com.smafty.synapsekeyboard.app-play-services-basement-18.3.0-17 C:\Users\ANNAS\.gradle\caches\transforms-3\3a8eac2d472c56c8f14c0bcba2fc9d1c\transformed\play-services-basement-18.3.0\res
+com.smafty.synapsekeyboard.app-lifecycle-runtime-ktx-release-18 C:\Users\ANNAS\.gradle\caches\transforms-3\3a955cfd4f5b3f520d785fb781dc923b\transformed\lifecycle-runtime-ktx-release\res
+com.smafty.synapsekeyboard.app-core-ktx-1.12.0-19 C:\Users\ANNAS\.gradle\caches\transforms-3\3ad8b5f6406224dc848ffe6b750f2ef1\transformed\core-ktx-1.12.0\res
+com.smafty.synapsekeyboard.app-credentials-1.3.0-20 C:\Users\ANNAS\.gradle\caches\transforms-3\3e67cf7f5f243d651a39b3abda94c3a6\transformed\credentials-1.3.0\res
+com.smafty.synapsekeyboard.app-ui-util-release-21 C:\Users\ANNAS\.gradle\caches\transforms-3\4150e44ffa7a811d71965c6573c634df\transformed\ui-util-release\res
+com.smafty.synapsekeyboard.app-material-icons-core-release-22 C:\Users\ANNAS\.gradle\caches\transforms-3\4387b5e641657b80b76b903b4f4cfe8f\transformed\material-icons-core-release\res
+com.smafty.synapsekeyboard.app-activity-ktx-1.8.2-23 C:\Users\ANNAS\.gradle\caches\transforms-3\4b377276026c023320cd1ef5caeecd2f\transformed\activity-ktx-1.8.2\res
+com.smafty.synapsekeyboard.app-runtime-saveable-release-24 C:\Users\ANNAS\.gradle\caches\transforms-3\4e1e4ef48bb2182e22487a4d3bc9890a\transformed\runtime-saveable-release\res
+com.smafty.synapsekeyboard.app-sqlite-framework-2.4.0-25 C:\Users\ANNAS\.gradle\caches\transforms-3\4f07f7873ad16843e97a1a405912006a\transformed\sqlite-framework-2.4.0\res
+com.smafty.synapsekeyboard.app-startup-runtime-1.2.0-26 C:\Users\ANNAS\.gradle\caches\transforms-3\52852ba011425e50eaef43f3e423c6d5\transformed\startup-runtime-1.2.0\res
+com.smafty.synapsekeyboard.app-ui-unit-release-27 C:\Users\ANNAS\.gradle\caches\transforms-3\54a79c948c3a2e8caed07bf959a0292c\transformed\ui-unit-release\res
+com.smafty.synapsekeyboard.app-profileinstaller-1.3.1-28 C:\Users\ANNAS\.gradle\caches\transforms-3\59b27bebfd7e51a8edfe5c93961c527c\transformed\profileinstaller-1.3.1\res
+com.smafty.synapsekeyboard.app-customview-poolingcontainer-1.0.0-29 C:\Users\ANNAS\.gradle\caches\transforms-3\59e174847f3d686f72e94d0e95214a01\transformed\customview-poolingcontainer-1.0.0\res
+com.smafty.synapsekeyboard.app-appcompat-resources-1.6.1-30 C:\Users\ANNAS\.gradle\caches\transforms-3\5a41b7c973d0f21ec7fb19fbbd216db7\transformed\appcompat-resources-1.6.1\res
+com.smafty.synapsekeyboard.app-navigation-common-ktx-2.7.6-31 C:\Users\ANNAS\.gradle\caches\transforms-3\5b315a1502794cf92b0f22267ff21d25\transformed\navigation-common-ktx-2.7.6\res
+com.smafty.synapsekeyboard.app-browser-1.8.0-32 C:\Users\ANNAS\.gradle\caches\transforms-3\62402a293b79a260b8694352a670328c\transformed\browser-1.8.0\res
+com.smafty.synapsekeyboard.app-navigation-runtime-2.7.6-33 C:\Users\ANNAS\.gradle\caches\transforms-3\633eb3ddcfc47d656e770766c2439a20\transformed\navigation-runtime-2.7.6\res
+com.smafty.synapsekeyboard.app-navigation-compose-2.7.6-34 C:\Users\ANNAS\.gradle\caches\transforms-3\681754cc770e9cb00f6442843a862782\transformed\navigation-compose-2.7.6\res
+com.smafty.synapsekeyboard.app-lifecycle-viewmodel-savedstate-2.8.6-35 C:\Users\ANNAS\.gradle\caches\transforms-3\6943e28905190b3bd962971b6631c75c\transformed\lifecycle-viewmodel-savedstate-2.8.6\res
+com.smafty.synapsekeyboard.app-appcompat-1.6.1-36 C:\Users\ANNAS\.gradle\caches\transforms-3\765e9f7882bc8626b8ec3c25d91f3baa\transformed\appcompat-1.6.1\res
+com.smafty.synapsekeyboard.app-sqlite-2.4.0-37 C:\Users\ANNAS\.gradle\caches\transforms-3\7b02374fb11e618767509b0e35facc28\transformed\sqlite-2.4.0\res
+com.smafty.synapsekeyboard.app-animation-core-release-38 C:\Users\ANNAS\.gradle\caches\transforms-3\7bd8596757ee37c594d15026fc3c54d1\transformed\animation-core-release\res
+com.smafty.synapsekeyboard.app-room-ktx-2.6.1-39 C:\Users\ANNAS\.gradle\caches\transforms-3\820040c9d106846e650f6e54c601d508\transformed\room-ktx-2.6.1\res
+com.smafty.synapsekeyboard.app-ui-test-manifest-1.6.5-40 C:\Users\ANNAS\.gradle\caches\transforms-3\83a6c7a11077a3ac04eb62efd019df25\transformed\ui-test-manifest-1.6.5\res
+com.smafty.synapsekeyboard.app-emoji2-1.3.0-41 C:\Users\ANNAS\.gradle\caches\transforms-3\84c38c9c8d2097e16125c7e853f0bdb3\transformed\emoji2-1.3.0\res
+com.smafty.synapsekeyboard.app-lifecycle-viewmodel-release-42 C:\Users\ANNAS\.gradle\caches\transforms-3\918046a8076534f6b8548deccdc3f64b\transformed\lifecycle-viewmodel-release\res
+com.smafty.synapsekeyboard.app-material-ripple-release-43 C:\Users\ANNAS\.gradle\caches\transforms-3\9aa4ad7506ec000a1b557c7ed7ed85b9\transformed\material-ripple-release\res
+com.smafty.synapsekeyboard.app-lifecycle-livedata-core-ktx-2.8.6-44 C:\Users\ANNAS\.gradle\caches\transforms-3\a36ee90058c37a860eeccaf8d1994c07\transformed\lifecycle-livedata-core-ktx-2.8.6\res
+com.smafty.synapsekeyboard.app-lifecycle-process-2.8.6-45 C:\Users\ANNAS\.gradle\caches\transforms-3\a4a2e559ecd2259c31168dd131766b3c\transformed\lifecycle-process-2.8.6\res
+com.smafty.synapsekeyboard.app-savedstate-1.2.1-46 C:\Users\ANNAS\.gradle\caches\transforms-3\a98361b347339a0da5969f2d0cfa2511\transformed\savedstate-1.2.1\res
+com.smafty.synapsekeyboard.app-animation-release-47 C:\Users\ANNAS\.gradle\caches\transforms-3\ac29d437e4f0f17ab0de04976849a6fd\transformed\animation-release\res
+com.smafty.synapsekeyboard.app-ui-graphics-release-48 C:\Users\ANNAS\.gradle\caches\transforms-3\ac8a4298dd6fb46c6ce50ed867aca3db\transformed\ui-graphics-release\res
+com.smafty.synapsekeyboard.app-ui-text-release-49 C:\Users\ANNAS\.gradle\caches\transforms-3\c4040a14137573b0e904e3dfbabedb69\transformed\ui-text-release\res
+com.smafty.synapsekeyboard.app-navigation-runtime-ktx-2.7.6-50 C:\Users\ANNAS\.gradle\caches\transforms-3\c655a388d0da98cedcfbfc63c3620dca\transformed\navigation-runtime-ktx-2.7.6\res
+com.smafty.synapsekeyboard.app-material3-release-51 C:\Users\ANNAS\.gradle\caches\transforms-3\c9d24ac765b06c8d28a9d7904e280524\transformed\material3-release\res
+com.smafty.synapsekeyboard.app-play-services-base-18.3.0-52 C:\Users\ANNAS\.gradle\caches\transforms-3\ca9443e2e34fc4d8d9bf7669200f643b\transformed\play-services-base-18.3.0\res
+com.smafty.synapsekeyboard.app-lifecycle-viewmodel-ktx-2.8.6-53 C:\Users\ANNAS\.gradle\caches\transforms-3\cd603a34120f8604f6af3c6572031467\transformed\lifecycle-viewmodel-ktx-2.8.6\res
+com.smafty.synapsekeyboard.app-ui-tooling-data-release-54 C:\Users\ANNAS\.gradle\caches\transforms-3\ce5f31e0b5b8ba8a61e7e59103646e6a\transformed\ui-tooling-data-release\res
+com.smafty.synapsekeyboard.app-navigation-common-2.7.6-55 C:\Users\ANNAS\.gradle\caches\transforms-3\d205db494f48db1980f99e65bcfdcfd7\transformed\navigation-common-2.7.6\res
+com.smafty.synapsekeyboard.app-material-release-56 C:\Users\ANNAS\.gradle\caches\transforms-3\d2e6e89196a656d1f5dbc37ead9faff1\transformed\material-release\res
+com.smafty.synapsekeyboard.app-play-services-auth-21.1.1-57 C:\Users\ANNAS\.gradle\caches\transforms-3\d9d0b4adfba49e77149d7f7286faa119\transformed\play-services-auth-21.1.1\res
+com.smafty.synapsekeyboard.app-ui-tooling-release-58 C:\Users\ANNAS\.gradle\caches\transforms-3\dad94d0722d4d78aaaa594fc92f5db19\transformed\ui-tooling-release\res
+com.smafty.synapsekeyboard.app-core-1.12.0-59 C:\Users\ANNAS\.gradle\caches\transforms-3\e038eebd8165ffe12f7e9d9de7da88d8\transformed\core-1.12.0\res
+com.smafty.synapsekeyboard.app-lifecycle-runtime-compose-release-60 C:\Users\ANNAS\.gradle\caches\transforms-3\f2632c5f9e58e57dc44830e4fd69d3cf\transformed\lifecycle-runtime-compose-release\res
+com.smafty.synapsekeyboard.app-material-icons-extended-release-61 C:\Users\ANNAS\.gradle\caches\transforms-3\f3cc61bb222d6b97226405469e25c552\transformed\material-icons-extended-release\res
+com.smafty.synapsekeyboard.app-lifecycle-viewmodel-compose-release-62 C:\Users\ANNAS\.gradle\caches\transforms-3\f5719d4d7a0711e63b11729829d5d043\transformed\lifecycle-viewmodel-compose-release\res
+com.smafty.synapsekeyboard.app-activity-1.8.2-63 C:\Users\ANNAS\.gradle\caches\transforms-3\f5d54909b42871d517eb734423778878\transformed\activity-1.8.2\res
+com.smafty.synapsekeyboard.app-activity-compose-1.8.2-64 C:\Users\ANNAS\.gradle\caches\transforms-3\fb1408c34ef677e5e980b1ce6e02930a\transformed\activity-compose-1.8.2\res
+com.smafty.synapsekeyboard.app-lottie-6.3.0-65 C:\Users\ANNAS\.gradle\caches\transforms-3\fdb222b2d862a7dfeb77c4a1e74e06ef\transformed\lottie-6.3.0\res
+com.smafty.synapsekeyboard.app-resValues-66 E:\flutter\2 Ai Keyboard\SynapseApp\app\build\generated\res\resValues\debug
+com.smafty.synapsekeyboard.app-packageDebugResources-67 E:\flutter\2 Ai Keyboard\SynapseApp\app\build\intermediates\incremental\debug\packageDebugResources\merged.dir
+com.smafty.synapsekeyboard.app-packageDebugResources-68 E:\flutter\2 Ai Keyboard\SynapseApp\app\build\intermediates\incremental\debug\packageDebugResources\stripped.dir
+com.smafty.synapsekeyboard.app-merged_res-69 E:\flutter\2 Ai Keyboard\SynapseApp\app\build\intermediates\merged_res\debug
+com.smafty.synapsekeyboard.app-debug-70 E:\flutter\2 Ai Keyboard\SynapseApp\app\src\debug\res
+com.smafty.synapsekeyboard.app-main-71 E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\res

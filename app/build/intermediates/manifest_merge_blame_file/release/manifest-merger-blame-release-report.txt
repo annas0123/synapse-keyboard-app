@@ -1,0 +1,277 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.smafty.synapsekeyboard"
+4    android:versionCode="1"
+5    android:versionName="1.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="24"
+9        android:targetSdkVersion="34" />
+10
+11    <uses-permission android:name="android.permission.INTERNET" />
+11-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:5:5-67
+11-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:5:22-64
+12
+13    <permission
+13-->[androidx.core:core:1.12.0] C:\Users\ANNAS\.gradle\caches\transforms-3\e038eebd8165ffe12f7e9d9de7da88d8\transformed\core-1.12.0\AndroidManifest.xml:22:5-24:47
+14        android:name="com.smafty.synapsekeyboard.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+14-->[androidx.core:core:1.12.0] C:\Users\ANNAS\.gradle\caches\transforms-3\e038eebd8165ffe12f7e9d9de7da88d8\transformed\core-1.12.0\AndroidManifest.xml:23:9-81
+15        android:protectionLevel="signature" />
+15-->[androidx.core:core:1.12.0] C:\Users\ANNAS\.gradle\caches\transforms-3\e038eebd8165ffe12f7e9d9de7da88d8\transformed\core-1.12.0\AndroidManifest.xml:24:9-44
+16
+17    <uses-permission android:name="com.smafty.synapsekeyboard.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+17-->[androidx.core:core:1.12.0] C:\Users\ANNAS\.gradle\caches\transforms-3\e038eebd8165ffe12f7e9d9de7da88d8\transformed\core-1.12.0\AndroidManifest.xml:26:5-97
+17-->[androidx.core:core:1.12.0] C:\Users\ANNAS\.gradle\caches\transforms-3\e038eebd8165ffe12f7e9d9de7da88d8\transformed\core-1.12.0\AndroidManifest.xml:26:22-94
+18
+19    <application
+19-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:8:5-53:19
+20        android:allowBackup="true"
+20-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:9:9-35
+21        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+21-->[androidx.core:core:1.12.0] C:\Users\ANNAS\.gradle\caches\transforms-3\e038eebd8165ffe12f7e9d9de7da88d8\transformed\core-1.12.0\AndroidManifest.xml:28:18-86
+22        android:dataExtractionRules="@xml/data_extraction_rules"
+22-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:10:9-65
+23        android:extractNativeLibs="false"
+24        android:fullBackupContent="@xml/backup_rules"
+24-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:11:9-54
+25        android:icon="@mipmap/ic_launcher"
+25-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:12:9-43
+26        android:label="@string/app_name"
+26-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:14:9-41
+27        android:roundIcon="@mipmap/ic_launcher_round"
+27-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:13:9-54
+28        android:supportsRtl="true"
+28-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:15:9-35
+29        android:theme="@style/Theme.SynapseKeyboard" >
+29-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:16:9-53
+30        <activity
+30-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:19:9-38:20
+31            android:name="com.smafty.synapsekeyboard.MainActivity"
+31-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:20:13-41
+32            android:exported="true"
+32-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:21:13-36
+33            android:label="@string/app_name"
+33-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:22:13-45
+34            android:theme="@style/Theme.SynapseKeyboard"
+34-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:23:13-57
+35            android:windowSoftInputMode="adjustResize" >
+35-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:24:13-55
+36            <intent-filter>
+36-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:25:13-28:29
+37                <action android:name="android.intent.action.MAIN" />
+37-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:26:17-69
+37-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:26:25-66
+38
+39                <category android:name="android.intent.category.LAUNCHER" />
+39-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:27:17-77
+39-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:27:27-74
+40            </intent-filter>
+41            <!-- Supabase OAuth redirect URI: supabase-auth://login-callback -->
+42            <intent-filter>
+42-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:30:13-37:29
+43                <action android:name="android.intent.action.VIEW" />
+43-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:31:17-69
+43-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:31:25-66
+44
+45                <category android:name="android.intent.category.DEFAULT" />
+45-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:32:17-76
+45-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:32:27-73
+46                <category android:name="android.intent.category.BROWSABLE" />
+46-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:33:17-78
+46-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:33:27-75
+47
+48                <data
+48-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:34:17-36:53
+49                    android:host="login-callback"
+49-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:36:21-50
+50                    android:scheme="supabase-auth" />
+50-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:35:21-51
+51            </intent-filter>
+52        </activity>
+53
+54        <!-- Registers Synapse as a system IME — appears in Settings → Manage keyboards -->
+55        <service
+55-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:41:9-52:19
+56            android:name="com.smafty.synapsekeyboard.SynapseInputMethodService"
+56-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:42:13-54
+57            android:exported="true"
+57-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:45:13-36
+58            android:label="@string/app_name"
+58-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:43:13-45
+59            android:permission="android.permission.BIND_INPUT_METHOD" >
+59-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:44:13-70
+60            <intent-filter>
+60-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:46:13-48:29
+61                <action android:name="android.view.InputMethod" />
+61-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:47:17-67
+61-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:47:25-64
+62            </intent-filter>
+63
+64            <meta-data
+64-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:49:13-51:50
+65                android:name="android.view.im"
+65-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:50:17-47
+66                android:resource="@xml/method" />
+66-->E:\flutter\2 Ai Keyboard\SynapseApp\app\src\main\AndroidManifest.xml:51:17-47
+67        </service>
+68        <service
+68-->[androidx.credentials:credentials-play-services-auth:1.3.0] C:\Users\ANNAS\.gradle\caches\transforms-3\360df5f9057d7349065c59516d05c454\transformed\credentials-play-services-auth-1.3.0\AndroidManifest.xml:24:9-32:19
+69            android:name="androidx.credentials.playservices.CredentialProviderMetadataHolder"
+69-->[androidx.credentials:credentials-play-services-auth:1.3.0] C:\Users\ANNAS\.gradle\caches\transforms-3\360df5f9057d7349065c59516d05c454\transformed\credentials-play-services-auth-1.3.0\AndroidManifest.xml:25:13-94
+70            android:enabled="true"
+70-->[androidx.credentials:credentials-play-services-auth:1.3.0] C:\Users\ANNAS\.gradle\caches\transforms-3\360df5f9057d7349065c59516d05c454\transformed\credentials-play-services-auth-1.3.0\AndroidManifest.xml:26:13-35
+71            android:exported="false" >
+71-->[androidx.credentials:credentials-play-services-auth:1.3.0] C:\Users\ANNAS\.gradle\caches\transforms-3\360df5f9057d7349065c59516d05c454\transformed\credentials-play-services-auth-1.3.0\AndroidManifest.xml:27:13-37
+72            <meta-data
+72-->[androidx.credentials:credentials-play-services-auth:1.3.0] C:\Users\ANNAS\.gradle\caches\transforms-3\360df5f9057d7349065c59516d05c454\transformed\credentials-play-services-auth-1.3.0\AndroidManifest.xml:29:13-31:104
+73                android:name="androidx.credentials.CREDENTIAL_PROVIDER_KEY"
+73-->[androidx.credentials:credentials-play-services-auth:1.3.0] C:\Users\ANNAS\.gradle\caches\transforms-3\360df5f9057d7349065c59516d05c454\transformed\credentials-play-services-auth-1.3.0\AndroidManifest.xml:30:17-76
+74                android:value="androidx.credentials.playservices.CredentialProviderPlayServicesImpl" />
+74-->[androidx.credentials:credentials-play-services-auth:1.3.0] C:\Users\ANNAS\.gradle\caches\transforms-3\360df5f9057d7349065c59516d05c454\transformed\credentials-play-services-auth-1.3.0\AndroidManifest.xml:31:17-101
+75        </service>
+76
+77        <activity
+77-->[androidx.credentials:credentials-play-services-auth:1.3.0] C:\Users\ANNAS\.gradle\caches\transforms-3\360df5f9057d7349065c59516d05c454\transformed\credentials-play-services-auth-1.3.0\AndroidManifest.xml:34:9-41:20
+78            android:name="androidx.credentials.playservices.HiddenActivity"
+78-->[androidx.credentials:credentials-play-services-auth:1.3.0] C:\Users\ANNAS\.gradle\caches\transforms-3\360df5f9057d7349065c59516d05c454\transformed\credentials-play-services-auth-1.3.0\AndroidManifest.xml:35:13-76
+79            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+79-->[androidx.credentials:credentials-play-services-auth:1.3.0] C:\Users\ANNAS\.gradle\caches\transforms-3\360df5f9057d7349065c59516d05c454\transformed\credentials-play-services-auth-1.3.0\AndroidManifest.xml:36:13-87
+80            android:enabled="true"
+80-->[androidx.credentials:credentials-play-services-auth:1.3.0] C:\Users\ANNAS\.gradle\caches\transforms-3\360df5f9057d7349065c59516d05c454\transformed\credentials-play-services-auth-1.3.0\AndroidManifest.xml:37:13-35
+81            android:exported="false"
+81-->[androidx.credentials:credentials-play-services-auth:1.3.0] C:\Users\ANNAS\.gradle\caches\transforms-3\360df5f9057d7349065c59516d05c454\transformed\credentials-play-services-auth-1.3.0\AndroidManifest.xml:38:13-37
+82            android:fitsSystemWindows="true"
+82-->[androidx.credentials:credentials-play-services-auth:1.3.0] C:\Users\ANNAS\.gradle\caches\transforms-3\360df5f9057d7349065c59516d05c454\transformed\credentials-play-services-auth-1.3.0\AndroidManifest.xml:39:13-45
+83            android:theme="@style/Theme.Hidden" >
+83-->[androidx.credentials:credentials-play-services-auth:1.3.0] C:\Users\ANNAS\.gradle\caches\transforms-3\360df5f9057d7349065c59516d05c454\transformed\credentials-play-services-auth-1.3.0\AndroidManifest.xml:40:13-48
+84        </activity>
+85        <activity
+85-->[com.google.android.gms:play-services-auth:21.1.1] C:\Users\ANNAS\.gradle\caches\transforms-3\d9d0b4adfba49e77149d7f7286faa119\transformed\play-services-auth-21.1.1\AndroidManifest.xml:23:9-27:75
+86            android:name="com.google.android.gms.auth.api.signin.internal.SignInHubActivity"
+86-->[com.google.android.gms:play-services-auth:21.1.1] C:\Users\ANNAS\.gradle\caches\transforms-3\d9d0b4adfba49e77149d7f7286faa119\transformed\play-services-auth-21.1.1\AndroidManifest.xml:24:13-93
+87            android:excludeFromRecents="true"
+87-->[com.google.android.gms:play-services-auth:21.1.1] C:\Users\ANNAS\.gradle\caches\transforms-3\d9d0b4adfba49e77149d7f7286faa119\transformed\play-services-auth-21.1.1\AndroidManifest.xml:25:13-46
+88            android:exported="false"
+88-->[com.google.android.gms:play-services-auth:21.1.1] C:\Users\ANNAS\.gradle\caches\transforms-3\d9d0b4adfba49e77149d7f7286faa119\transformed\play-services-auth-21.1.1\AndroidManifest.xml:26:13-37
+89            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+89-->[com.google.android.gms:play-services-auth:21.1.1] C:\Users\ANNAS\.gradle\caches\transforms-3\d9d0b4adfba49e77149d7f7286faa119\transformed\play-services-auth-21.1.1\AndroidManifest.xml:27:13-72
+90        <!--
+91            Service handling Google Sign-In user revocation. For apps that do not integrate with
+92            Google Sign-In, this service will never be started.
+93        -->
+94        <service
+94-->[com.google.android.gms:play-services-auth:21.1.1] C:\Users\ANNAS\.gradle\caches\transforms-3\d9d0b4adfba49e77149d7f7286faa119\transformed\play-services-auth-21.1.1\AndroidManifest.xml:33:9-37:51
+95            android:name="com.google.android.gms.auth.api.signin.RevocationBoundService"
+95-->[com.google.android.gms:play-services-auth:21.1.1] C:\Users\ANNAS\.gradle\caches\transforms-3\d9d0b4adfba49e77149d7f7286faa119\transformed\play-services-auth-21.1.1\AndroidManifest.xml:34:13-89
+96            android:exported="true"
+96-->[com.google.android.gms:play-services-auth:21.1.1] C:\Users\ANNAS\.gradle\caches\transforms-3\d9d0b4adfba49e77149d7f7286faa119\transformed\play-services-auth-21.1.1\AndroidManifest.xml:35:13-36
+97            android:permission="com.google.android.gms.auth.api.signin.permission.REVOCATION_NOTIFICATION"
+97-->[com.google.android.gms:play-services-auth:21.1.1] C:\Users\ANNAS\.gradle\caches\transforms-3\d9d0b4adfba49e77149d7f7286faa119\transformed\play-services-auth-21.1.1\AndroidManifest.xml:36:13-107
+98            android:visibleToInstantApps="true" />
+98-->[com.google.android.gms:play-services-auth:21.1.1] C:\Users\ANNAS\.gradle\caches\transforms-3\d9d0b4adfba49e77149d7f7286faa119\transformed\play-services-auth-21.1.1\AndroidManifest.xml:37:13-48
+99
+100        <activity
+100-->[com.google.android.gms:play-services-base:18.3.0] C:\Users\ANNAS\.gradle\caches\transforms-3\ca9443e2e34fc4d8d9bf7669200f643b\transformed\play-services-base-18.3.0\AndroidManifest.xml:20:9-22:45
+101            android:name="com.google.android.gms.common.api.GoogleApiActivity"
+101-->[com.google.android.gms:play-services-base:18.3.0] C:\Users\ANNAS\.gradle\caches\transforms-3\ca9443e2e34fc4d8d9bf7669200f643b\transformed\play-services-base-18.3.0\AndroidManifest.xml:20:19-85
+102            android:exported="false"
+102-->[com.google.android.gms:play-services-base:18.3.0] C:\Users\ANNAS\.gradle\caches\transforms-3\ca9443e2e34fc4d8d9bf7669200f643b\transformed\play-services-base-18.3.0\AndroidManifest.xml:22:19-43
+103            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+103-->[com.google.android.gms:play-services-base:18.3.0] C:\Users\ANNAS\.gradle\caches\transforms-3\ca9443e2e34fc4d8d9bf7669200f643b\transformed\play-services-base-18.3.0\AndroidManifest.xml:21:19-78
+104
+105        <meta-data
+105-->[com.google.android.gms:play-services-basement:18.3.0] C:\Users\ANNAS\.gradle\caches\transforms-3\3a8eac2d472c56c8f14c0bcba2fc9d1c\transformed\play-services-basement-18.3.0\AndroidManifest.xml:21:9-23:69
+106            android:name="com.google.android.gms.version"
+106-->[com.google.android.gms:play-services-basement:18.3.0] C:\Users\ANNAS\.gradle\caches\transforms-3\3a8eac2d472c56c8f14c0bcba2fc9d1c\transformed\play-services-basement-18.3.0\AndroidManifest.xml:22:13-58
+107            android:value="@integer/google_play_services_version" />
+107-->[com.google.android.gms:play-services-basement:18.3.0] C:\Users\ANNAS\.gradle\caches\transforms-3\3a8eac2d472c56c8f14c0bcba2fc9d1c\transformed\play-services-basement-18.3.0\AndroidManifest.xml:23:13-66
+108
+109        <provider
+109-->[androidx.emoji2:emoji2:1.3.0] C:\Users\ANNAS\.gradle\caches\transforms-3\84c38c9c8d2097e16125c7e853f0bdb3\transformed\emoji2-1.3.0\AndroidManifest.xml:24:9-32:20
+110            android:name="androidx.startup.InitializationProvider"
+110-->[androidx.emoji2:emoji2:1.3.0] C:\Users\ANNAS\.gradle\caches\transforms-3\84c38c9c8d2097e16125c7e853f0bdb3\transformed\emoji2-1.3.0\AndroidManifest.xml:25:13-67
+111            android:authorities="com.smafty.synapsekeyboard.androidx-startup"
+111-->[androidx.emoji2:emoji2:1.3.0] C:\Users\ANNAS\.gradle\caches\transforms-3\84c38c9c8d2097e16125c7e853f0bdb3\transformed\emoji2-1.3.0\AndroidManifest.xml:26:13-68
+112            android:exported="false" >
+112-->[androidx.emoji2:emoji2:1.3.0] C:\Users\ANNAS\.gradle\caches\transforms-3\84c38c9c8d2097e16125c7e853f0bdb3\transformed\emoji2-1.3.0\AndroidManifest.xml:27:13-37
+113            <meta-data
+113-->[androidx.emoji2:emoji2:1.3.0] C:\Users\ANNAS\.gradle\caches\transforms-3\84c38c9c8d2097e16125c7e853f0bdb3\transformed\emoji2-1.3.0\AndroidManifest.xml:29:13-31:52
+114                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+114-->[androidx.emoji2:emoji2:1.3.0] C:\Users\ANNAS\.gradle\caches\transforms-3\84c38c9c8d2097e16125c7e853f0bdb3\transformed\emoji2-1.3.0\AndroidManifest.xml:30:17-75
+115                android:value="androidx.startup" />
+115-->[androidx.emoji2:emoji2:1.3.0] C:\Users\ANNAS\.gradle\caches\transforms-3\84c38c9c8d2097e16125c7e853f0bdb3\transformed\emoji2-1.3.0\AndroidManifest.xml:31:17-49
+116            <meta-data
+116-->[io.github.jan-tennert.supabase:auth-kt-android:3.0.1] C:\Users\ANNAS\.gradle\caches\transforms-3\52d587df1eea39fe9582150ec1fe51a7\transformed\auth-kt-release\AndroidManifest.xml:14:13-16:52
+117                android:name="io.github.jan.supabase.auth.SupabaseInitializer"
+117-->[io.github.jan-tennert.supabase:auth-kt-android:3.0.1] C:\Users\ANNAS\.gradle\caches\transforms-3\52d587df1eea39fe9582150ec1fe51a7\transformed\auth-kt-release\AndroidManifest.xml:15:17-79
+118                android:value="androidx.startup" />
+118-->[io.github.jan-tennert.supabase:auth-kt-android:3.0.1] C:\Users\ANNAS\.gradle\caches\transforms-3\52d587df1eea39fe9582150ec1fe51a7\transformed\auth-kt-release\AndroidManifest.xml:16:17-49
+119            <meta-data
+119-->[androidx.lifecycle:lifecycle-process:2.8.6] C:\Users\ANNAS\.gradle\caches\transforms-3\a4a2e559ecd2259c31168dd131766b3c\transformed\lifecycle-process-2.8.6\AndroidManifest.xml:29:13-31:52
+120                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+120-->[androidx.lifecycle:lifecycle-process:2.8.6] C:\Users\ANNAS\.gradle\caches\transforms-3\a4a2e559ecd2259c31168dd131766b3c\transformed\lifecycle-process-2.8.6\AndroidManifest.xml:30:17-78
+121                android:value="androidx.startup" />
+121-->[androidx.lifecycle:lifecycle-process:2.8.6] C:\Users\ANNAS\.gradle\caches\transforms-3\a4a2e559ecd2259c31168dd131766b3c\transformed\lifecycle-process-2.8.6\AndroidManifest.xml:31:17-49
+122            <meta-data
+122-->[com.russhwolf:multiplatform-settings-no-arg-android:1.2.0] C:\Users\ANNAS\.gradle\caches\transforms-3\f039fcda627c60c941eb5de665c38ffb\transformed\multiplatform-settings-no-arg-release\AndroidManifest.xml:29:13-31:52
+123                android:name="com.russhwolf.settings.SettingsInitializer"
+123-->[com.russhwolf:multiplatform-settings-no-arg-android:1.2.0] C:\Users\ANNAS\.gradle\caches\transforms-3\f039fcda627c60c941eb5de665c38ffb\transformed\multiplatform-settings-no-arg-release\AndroidManifest.xml:30:17-74
+124                android:value="androidx.startup" />
+124-->[com.russhwolf:multiplatform-settings-no-arg-android:1.2.0] C:\Users\ANNAS\.gradle\caches\transforms-3\f039fcda627c60c941eb5de665c38ffb\transformed\multiplatform-settings-no-arg-release\AndroidManifest.xml:31:17-49
+125            <meta-data
+125-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\ANNAS\.gradle\caches\transforms-3\59b27bebfd7e51a8edfe5c93961c527c\transformed\profileinstaller-1.3.1\AndroidManifest.xml:29:13-31:52
+126                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+126-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\ANNAS\.gradle\caches\transforms-3\59b27bebfd7e51a8edfe5c93961c527c\transformed\profileinstaller-1.3.1\AndroidManifest.xml:30:17-85
+127                android:value="androidx.startup" />
+127-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\ANNAS\.gradle\caches\transforms-3\59b27bebfd7e51a8edfe5c93961c527c\transformed\profileinstaller-1.3.1\AndroidManifest.xml:31:17-49
+128        </provider>
+129
+130        <service
+130-->[androidx.room:room-runtime:2.6.1] C:\Users\ANNAS\.gradle\caches\transforms-3\15d0838e554fb5bd89f27c336f4a5e53\transformed\room-runtime-2.6.1\AndroidManifest.xml:24:9-28:63
+131            android:name="androidx.room.MultiInstanceInvalidationService"
+131-->[androidx.room:room-runtime:2.6.1] C:\Users\ANNAS\.gradle\caches\transforms-3\15d0838e554fb5bd89f27c336f4a5e53\transformed\room-runtime-2.6.1\AndroidManifest.xml:25:13-74
+132            android:directBootAware="true"
+132-->[androidx.room:room-runtime:2.6.1] C:\Users\ANNAS\.gradle\caches\transforms-3\15d0838e554fb5bd89f27c336f4a5e53\transformed\room-runtime-2.6.1\AndroidManifest.xml:26:13-43
+133            android:exported="false" />
+133-->[androidx.room:room-runtime:2.6.1] C:\Users\ANNAS\.gradle\caches\transforms-3\15d0838e554fb5bd89f27c336f4a5e53\transformed\room-runtime-2.6.1\AndroidManifest.xml:27:13-37
+134
+135        <receiver
+135-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\ANNAS\.gradle\caches\transforms-3\59b27bebfd7e51a8edfe5c93961c527c\transformed\profileinstaller-1.3.1\AndroidManifest.xml:34:9-52:20
+136            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+136-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\ANNAS\.gradle\caches\transforms-3\59b27bebfd7e51a8edfe5c93961c527c\transformed\profileinstaller-1.3.1\AndroidManifest.xml:35:13-76
+137            android:directBootAware="false"
+137-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\ANNAS\.gradle\caches\transforms-3\59b27bebfd7e51a8edfe5c93961c527c\transformed\profileinstaller-1.3.1\AndroidManifest.xml:36:13-44
+138            android:enabled="true"
+138-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\ANNAS\.gradle\caches\transforms-3\59b27bebfd7e51a8edfe5c93961c527c\transformed\profileinstaller-1.3.1\AndroidManifest.xml:37:13-35
+139            android:exported="true"
+139-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\ANNAS\.gradle\caches\transforms-3\59b27bebfd7e51a8edfe5c93961c527c\transformed\profileinstaller-1.3.1\AndroidManifest.xml:38:13-36
+140            android:permission="android.permission.DUMP" >
+140-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\ANNAS\.gradle\caches\transforms-3\59b27bebfd7e51a8edfe5c93961c527c\transformed\profileinstaller-1.3.1\AndroidManifest.xml:39:13-57
+141            <intent-filter>
+141-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\ANNAS\.gradle\caches\transforms-3\59b27bebfd7e51a8edfe5c93961c527c\transformed\profileinstaller-1.3.1\AndroidManifest.xml:40:13-42:29
+142                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+142-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\ANNAS\.gradle\caches\transforms-3\59b27bebfd7e51a8edfe5c93961c527c\transformed\profileinstaller-1.3.1\AndroidManifest.xml:41:17-91
+142-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\ANNAS\.gradle\caches\transforms-3\59b27bebfd7e51a8edfe5c93961c527c\transformed\profileinstaller-1.3.1\AndroidManifest.xml:41:25-88
+143            </intent-filter>
+144            <intent-filter>
+144-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\ANNAS\.gradle\caches\transforms-3\59b27bebfd7e51a8edfe5c93961c527c\transformed\profileinstaller-1.3.1\AndroidManifest.xml:43:13-45:29
+145                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+145-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\ANNAS\.gradle\caches\transforms-3\59b27bebfd7e51a8edfe5c93961c527c\transformed\profileinstaller-1.3.1\AndroidManifest.xml:44:17-85
+145-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\ANNAS\.gradle\caches\transforms-3\59b27bebfd7e51a8edfe5c93961c527c\transformed\profileinstaller-1.3.1\AndroidManifest.xml:44:25-82
+146            </intent-filter>
+147            <intent-filter>
+147-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\ANNAS\.gradle\caches\transforms-3\59b27bebfd7e51a8edfe5c93961c527c\transformed\profileinstaller-1.3.1\AndroidManifest.xml:46:13-48:29
+148                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+148-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\ANNAS\.gradle\caches\transforms-3\59b27bebfd7e51a8edfe5c93961c527c\transformed\profileinstaller-1.3.1\AndroidManifest.xml:47:17-88
+148-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\ANNAS\.gradle\caches\transforms-3\59b27bebfd7e51a8edfe5c93961c527c\transformed\profileinstaller-1.3.1\AndroidManifest.xml:47:25-85
+149            </intent-filter>
+150            <intent-filter>
+150-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\ANNAS\.gradle\caches\transforms-3\59b27bebfd7e51a8edfe5c93961c527c\transformed\profileinstaller-1.3.1\AndroidManifest.xml:49:13-51:29
+151                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+151-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\ANNAS\.gradle\caches\transforms-3\59b27bebfd7e51a8edfe5c93961c527c\transformed\profileinstaller-1.3.1\AndroidManifest.xml:50:17-95
+151-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\ANNAS\.gradle\caches\transforms-3\59b27bebfd7e51a8edfe5c93961c527c\transformed\profileinstaller-1.3.1\AndroidManifest.xml:50:25-92
+152            </intent-filter>
+153        </receiver>
+154    </application>
+155
+156</manifest>
