@@ -84,17 +84,9 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.runtime.collectAsState
+import com.smafty.synapsekeyboard.data.model.LanguageLayouts
 
 
-// ---------------------------------------------------------------------------
-// QWERTY rows
-// ---------------------------------------------------------------------------
-private val ROW_1 = listOf("q","w","e","r","t","y","u","i","o","p")
-private val ROW_2 = listOf("a","s","d","f","g","h","j","k","l")
-private val ROW_3 = listOf("z","x","c","v","b","n","m")
-
-// Long-press hints for the top QWERTY row (number shortcuts)
-private val ROW_1_HINTS = listOf("1","2","3","4","5","6","7","8","9","0")
 
 // ---------------------------------------------------------------------------
 // Symbol rows (page 1) — matches Gboard reference
@@ -679,6 +671,7 @@ private fun QwertyLayout(
     onSpace: () -> Unit,
 ) {
     val keyHeight = (44 * state.keyHeightScale).dp
+    val layout    = LanguageLayouts.getLayout(state.activeLanguage)
 
     Column(
         modifier = Modifier
@@ -686,55 +679,58 @@ private fun QwertyLayout(
             .padding(horizontal = 3.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        // Row 1 — q w e r t y u i o p (with number hints)
+        // Row 1 — with number long-press hints
         KeyRow {
-            ROW_1.forEachIndexed { idx, ch ->
+            layout.row1.forEachIndexed { idx, ch ->
+                val hint = layout.row1Hints.getOrElse(idx) { "" }
                 CharKeyWithHint(
-                    label = if (state.isUpperCase()) ch.uppercase() else ch,
-                    hint = ROW_1_HINTS[idx],
+                    label = if (layout.supportsShift && state.isUpperCase()) ch.uppercase() else ch,
+                    hint  = hint,
                     weight = 1f,
                     height = keyHeight,
                     onPress = {
-                        onChar(if (state.isUpperCase()) ch.uppercase() else ch)
+                        onChar(if (layout.supportsShift && state.isUpperCase()) ch.uppercase() else ch)
                         state.consumeShiftAfterKey()
                     },
-                    onLongPress = { onChar(ROW_1_HINTS[idx]) }
+                    onLongPress = { if (hint.isNotEmpty()) onChar(hint) }
                 )
             }
         }
 
-        // Row 2 — a s d f g h j k l (slightly inset)
+        // Row 2 — slightly inset
         KeyRow(horizontalPadding = 16.dp) {
-            ROW_2.forEach { ch ->
+            layout.row2.forEach { ch ->
                 CharKey(
-                    label = if (state.isUpperCase()) ch.uppercase() else ch,
+                    label = if (layout.supportsShift && state.isUpperCase()) ch.uppercase() else ch,
                     weight = 1f,
                     height = keyHeight,
                     onPress = {
-                        onChar(if (state.isUpperCase()) ch.uppercase() else ch)
+                        onChar(if (layout.supportsShift && state.isUpperCase()) ch.uppercase() else ch)
                         state.consumeShiftAfterKey()
                     }
                 )
             }
         }
 
-        // Row 3 — ⇧ z x c v b n m ⌫
+        // Row 3 — ⇧ [chars] ⌫
         KeyRow {
-            ShiftKey(
-                isActive = state.isShiftActive,
-                isCapsLock = state.isCapsLock,
-                height = keyHeight,
-                onPress = { state.onShiftTap() }
-            )
-            Spacer(Modifier.width(4.dp))
+            if (layout.supportsShift) {
+                ShiftKey(
+                    isActive  = state.isShiftActive,
+                    isCapsLock = state.isCapsLock,
+                    height    = keyHeight,
+                    onPress   = { state.onShiftTap() }
+                )
+                Spacer(Modifier.width(4.dp))
+            }
 
-            ROW_3.forEach { ch ->
+            layout.row3.forEach { ch ->
                 CharKey(
-                    label = if (state.isUpperCase()) ch.uppercase() else ch,
+                    label = if (layout.supportsShift && state.isUpperCase()) ch.uppercase() else ch,
                     weight = 1f,
                     height = keyHeight,
                     onPress = {
-                        onChar(if (state.isUpperCase()) ch.uppercase() else ch)
+                        onChar(if (layout.supportsShift && state.isUpperCase()) ch.uppercase() else ch)
                         state.consumeShiftAfterKey()
                     }
                 )
@@ -744,18 +740,20 @@ private fun QwertyLayout(
             BackspaceKey(height = keyHeight, onPress = onBackspace)
         }
 
-        // Bottom row — ?123 , 😊 [space] . ↵
+        // Bottom row — ?123 , 🌐/😊 [space] . ↵
         BottomRow(
-            mode = state.mode,
-            height = keyHeight,
-            onChar = onChar,
-            onModeToggle = {
+            state         = state,
+            mode          = state.mode,
+            height        = keyHeight,
+            onChar        = onChar,
+            onModeToggle  = {
                 state.mode = if (state.mode == KeyboardMode.QWERTY)
                     KeyboardMode.SYMBOLS_1 else KeyboardMode.QWERTY
             },
-            onEmojiToggle = { state.switchToEmoji() },
-            onSpace = onSpace,
-            onReturn = onReturn
+            onEmojiToggle  = { state.switchToEmoji() },
+            onLanguageCycle = { state.cycleLanguage() },
+            onSpace       = onSpace,
+            onReturn      = onReturn
         )
     }
 }
@@ -803,13 +801,15 @@ private fun SymbolsLayout(
         }
 
         BottomRow(
-            mode = state.mode,
-            height = keyHeight,
-            onChar = onChar,
-            onModeToggle = { state.mode = KeyboardMode.QWERTY },
-            onEmojiToggle = { state.switchToEmoji() },
-            onSpace = onSpace,
-            onReturn = onReturn
+            state           = state,
+            mode            = state.mode,
+            height          = keyHeight,
+            onChar          = onChar,
+            onModeToggle    = { state.mode = KeyboardMode.QWERTY },
+            onEmojiToggle   = { state.switchToEmoji() },
+            onLanguageCycle = { state.cycleLanguage() },
+            onSpace         = onSpace,
+            onReturn        = onReturn
         )
     }
 }
@@ -957,19 +957,22 @@ private fun EmojiLayout(
 }
 
 // ---------------------------------------------------------------------------
-// Bottom row: mode-switch | , | emoji | space | . | return
+// Bottom row: mode-switch | , | 🌐/😊 | space | . | return
 // ---------------------------------------------------------------------------
 @Composable
 private fun BottomRow(
+    state: KeyboardUiState,
     mode: KeyboardMode,
     height: Dp,
     onChar: (String) -> Unit,
     onModeToggle: () -> Unit,
     onEmojiToggle: () -> Unit,
+    onLanguageCycle: () -> Unit,
     onSpace: () -> Unit,
     onReturn: () -> Unit,
 ) {
     val theme = LocalKeyboardTheme.current
+    val hasMultipleLanguages = state.enabledLanguages.size > 1
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -985,7 +988,7 @@ private fun BottomRow(
             onPress = onModeToggle
         )
 
-        // Comma key — uses commitText(",", 1) via onChar for universal app compatibility
+        // Comma key
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -998,7 +1001,7 @@ private fun BottomRow(
             Text(",", color = theme.keyTextMuted, fontSize = 16.sp)
         }
 
-        // Emoji toggle
+        // Globe (language cycle) OR Emoji toggle
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -1006,21 +1009,30 @@ private fun BottomRow(
                 .clickable(
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() },
-                    onClick = onEmojiToggle
+                    onClick = if (hasMultipleLanguages) onLanguageCycle else onEmojiToggle
                 )
                 .padding(horizontal = KeyHorizontalPadding)
                 .keyStyle(theme, true),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_emoji),
-                contentDescription = "Emoji",
-                tint = theme.keyTextMuted,
-                modifier = Modifier.size(20.dp)
-            )
+            if (hasMultipleLanguages) {
+                Icon(
+                    imageVector = Icons.Rounded.Language,
+                    contentDescription = "Switch Language",
+                    tint = theme.keyTextMuted,
+                    modifier = Modifier.size(20.dp)
+                )
+            } else {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_emoji),
+                    contentDescription = "Emoji",
+                    tint = theme.keyTextMuted,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
         }
 
-        // Space bar
+        // Space bar — shows active language name
         Box(
             modifier = Modifier
                 .weight(4f)
@@ -1030,10 +1042,10 @@ private fun BottomRow(
                 .keyStyle(theme, false),
             contentAlignment = Alignment.Center
         ) {
-            Text("English", color = theme.keyTextMuted, fontSize = 12.sp)
+            Text(state.activeLanguage, color = theme.keyTextMuted, fontSize = 12.sp)
         }
 
-        // Period key — uses commitText(".", 1) via onChar for universal app compatibility
+        // Period key
         Box(
             modifier = Modifier
                 .weight(1f)

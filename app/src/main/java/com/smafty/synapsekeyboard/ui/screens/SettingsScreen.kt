@@ -46,6 +46,8 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import com.smafty.synapsekeyboard.data.model.LanguageLayouts
+import com.smafty.synapsekeyboard.data.model.SynapseModel
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -96,17 +98,23 @@ fun SettingsScreen(
     var showSignOutDialog by remember { mutableStateOf(false) }
     var showThemeDialog   by remember { mutableStateOf(false) }
 
+    var selectedModelKey by remember {
+        mutableStateOf(prefs.getString("synapse_selected_model", SynapseModel.S1.key) ?: SynapseModel.S1.key)
+    }
+
+    // Language selection state — persisted as a StringSet in SharedPreferences
+    var enabledLanguages by remember {
+        mutableStateOf(
+            prefs.getStringSet("synapse_enabled_languages", setOf("English"))
+                ?.toSet() ?: setOf("English")
+        )
+    }
+
     val userName  = AuthManager.currentUserName  ?: "Guest"
     val userEmail = AuthManager.currentUserEmail ?: "Not signed in"
 
     var visible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { visible = true }
-
-    val transactions = listOf(
-        Triple("May 19", "100 Credits", "$3.00"),
-        Triple("May 10", "200 Credits", "$6.00"),
-        Triple("Apr 28", "100 Credits", "$3.00"),
-    )
 
     Column(
         modifier = Modifier
@@ -242,6 +250,176 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // ── Section: AI Engine Selection ──────────────────────────────────────
+        AnimatedVisibility(
+            visible = visible,
+            enter   = fadeIn(tween(500, 120)) + slideInVertically(tween(500, 120)) { 40 }
+        ) {
+            SettingsSection(title = "AI Engine Selection") {
+                Column(
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    SynapseModel.values().forEach { model ->
+                        val isSelected = model.key == selectedModelKey
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(14.dp))
+                                .border(
+                                    width = if (isSelected) 1.5.dp else 1.dp,
+                                    brush = if (isSelected) Brush.linearGradient(listOf(ElectricPurple, Color(0xFF06B6D4)))
+                                            else Brush.linearGradient(listOf(Color.White.copy(alpha = 0.08f), Color.White.copy(alpha = 0.04f))),
+                                    shape = RoundedCornerShape(14.dp)
+                                )
+                                .background(
+                                    if (isSelected) ElectricPurple.copy(alpha = 0.10f)
+                                    else Color(0xFF161622)
+                                )
+                                .clickable {
+                                    prefs.edit().putString("synapse_selected_model", model.key).apply()
+                                    selectedModelKey = model.key
+                                }
+                                .padding(horizontal = 16.dp, vertical = 14.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text       = model.displayName,
+                                        color      = Color.White,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize   = 15.sp
+                                    )
+                                    if (model.isRecommended) {
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Box(
+                                            modifier = Modifier
+                                                .background(EmeraldGreen.copy(alpha = 0.15f), RoundedCornerShape(6.dp))
+                                                .border(1.dp, EmeraldGreen.copy(alpha = 0.3f), RoundedCornerShape(6.dp))
+                                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                                        ) {
+                                            Text(
+                                                text = "RECOMMENDED",
+                                                color = EmeraldGreen,
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 9.sp
+                                            )
+                                        }
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text  = model.description,
+                                    color = MutedGrey.copy(alpha = 0.7f),
+                                    fontSize = 12.sp
+                                )
+                            }
+                            // Radio indicator
+                            Box(
+                                modifier = Modifier
+                                    .size(20.dp)
+                                    .clip(CircleShape)
+                                    .background(if (isSelected) ElectricPurple else Color.Transparent)
+                                    .border(2.dp, if (isSelected) ElectricPurple else MutedGrey.copy(alpha = 0.4f), CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (isSelected) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(8.dp)
+                                            .clip(CircleShape)
+                                            .background(Color.White)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // ── Section: Keyboard Languages ────────────────────────────────────────────────
+        AnimatedVisibility(
+            visible = visible,
+            enter   = fadeIn(tween(500, 130)) + slideInVertically(tween(500, 130)) { 40 }
+        ) {
+            SettingsSection(title = "Keyboard Languages") {
+                Column(
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text  = "Select languages. The 🌐 key will cycle between them.",
+                        color = MutedGrey.copy(alpha = 0.65f),
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    LanguageLayouts.allLanguages.forEach { lang ->
+                        val isChecked  = lang in enabledLanguages
+                        val isEnglish  = lang == "English"   // English cannot be disabled
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(
+                                    if (isChecked) ElectricPurple.copy(alpha = 0.08f)
+                                    else Color(0xFF161622)
+                                )
+                                .clickable(enabled = !isEnglish) {
+                                    val updated = if (isChecked) {
+                                        enabledLanguages - lang
+                                    } else {
+                                        enabledLanguages + lang
+                                    }
+                                    // Always keep English
+                                    val final = if ("English" !in updated) updated + "English" else updated
+                                    enabledLanguages = final
+                                    prefs.edit().putStringSet("synapse_enabled_languages", final).apply()
+                                }
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text       = lang,
+                                    color      = if (isChecked) Color.White else MutedGrey,
+                                    fontWeight = if (isChecked) FontWeight.SemiBold else FontWeight.Normal,
+                                    fontSize   = 14.sp
+                                )
+                                if (isEnglish) {
+                                    Text(
+                                        text     = "Always enabled",
+                                        color    = MutedGrey.copy(alpha = 0.5f),
+                                        fontSize = 11.sp
+                                    )
+                                }
+                            }
+                            Switch(
+                                checked         = isChecked,
+                                onCheckedChange = if (isEnglish) null else { checked ->
+                                    val updated = if (checked) enabledLanguages + lang else enabledLanguages - lang
+                                    val final   = if ("English" !in updated) updated + "English" else updated
+                                    enabledLanguages = final
+                                    prefs.edit().putStringSet("synapse_enabled_languages", final).apply()
+                                },
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor       = Color.White,
+                                    checkedTrackColor       = ElectricPurple,
+                                    uncheckedThumbColor     = MutedGrey,
+                                    uncheckedTrackColor     = Color(0xFF2A2A3A)
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         // ── Section: Keyboard Management ──────────────────────────────────────
         AnimatedVisibility(
             visible = visible,
@@ -285,46 +463,6 @@ fun SettingsScreen(
                             // Ignore
                         }
                     }
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // ── Section: Account & Billing ────────────────────────────────────────
-        AnimatedVisibility(
-            visible = visible,
-            enter   = fadeIn(tween(500, 180)) + slideInVertically(tween(500, 180)) { 40 }
-        ) {
-            SettingsSection(title = "Account & Billing") {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 10.dp, bottom = 12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment     = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text          = "TRANSACTION HISTORY",
-                        style         = MaterialTheme.typography.labelSmall,
-                        color         = MutedGrey.copy(alpha = 0.55f),
-                        fontWeight    = FontWeight.Bold,
-                        letterSpacing = 1.0.sp
-                    )
-                }
-                transactions.forEachIndexed { index, (date, amount, price) ->
-                    TransactionRow(date = date, amount = amount, price = price)
-                    if (index < transactions.lastIndex) {
-                        SettingsDivider()
-                    }
-                }
-                SettingsDivider()
-                ActionSettingsRow(
-                    icon        = Icons.Rounded.Refresh,
-                    iconTint    = EmeraldGreen,
-                    label       = "Restore / Sync Credits",
-                    description = "Manually sync from Supabase",
-                    onClick     = { /* Sync handled internally */ }
                 )
             }
         }
@@ -654,51 +792,6 @@ private fun ActionSettingsRow(
             contentDescription = null,
             tint               = MutedGrey.copy(alpha = 0.35f),
             modifier           = Modifier.size(20.dp)
-        )
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Transaction row
-// ---------------------------------------------------------------------------
-@Composable
-private fun TransactionRow(date: String, amount: String, price: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .size(38.dp)
-                .clip(RoundedCornerShape(11.dp))
-                .background(
-                    Brush.radialGradient(
-                        listOf(EmeraldGreen.copy(alpha = 0.20f), EmeraldGreen.copy(alpha = 0.05f))
-                    )
-                )
-                .border(1.dp, EmeraldGreen.copy(alpha = 0.22f), RoundedCornerShape(11.dp)),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector        = Icons.Rounded.Payment,
-                contentDescription = null,
-                tint               = EmeraldGreen,
-                modifier           = Modifier.size(18.dp)
-            )
-        }
-        Spacer(modifier = Modifier.width(14.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(amount, color = TextColor, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(date, color = MutedGrey.copy(alpha = 0.65f), fontSize = 12.sp)
-        }
-        Text(
-            text       = price,
-            color      = EmeraldGreen,
-            fontWeight = FontWeight.ExtraBold,
-            fontSize   = 14.sp
         )
     }
 }

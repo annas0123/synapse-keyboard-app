@@ -4,6 +4,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.smafty.synapsekeyboard.data.model.LanguageLayouts
+import com.smafty.synapsekeyboard.data.model.SynapseModel
 
 // ---------------------------------------------------------------------------
 // Keyboard mode (which layer is displayed)
@@ -78,6 +80,30 @@ class KeyboardUiState {
      * instruction string executes the AI prompt.
      */
     var selectedPromptInstruction by mutableStateOf("")
+
+    // ---------------------------------------------------------------------------
+    // Active AI Engine — loaded from SharedPreferences on keyboard open.
+    // Defaults to S1. UI shows only branded names.
+    // ---------------------------------------------------------------------------
+    var selectedModel by mutableStateOf(SynapseModel.S1)
+
+    // ---------------------------------------------------------------------------
+    // Multi-Language Support — loaded from SharedPreferences on keyboard open.
+    // ---------------------------------------------------------------------------
+    /** The currently active keyboard language (e.g. "English", "Urdu"). */
+    var activeLanguage by mutableStateOf("English")
+    /** Ordered list of languages the user has enabled in Settings. Always contains at least "English". */
+    var enabledLanguages by mutableStateOf<List<String>>(listOf("English"))
+
+    /** Cycles activeLanguage to the next one in enabledLanguages (wraps around). */
+    fun cycleLanguage() {
+        val idx = enabledLanguages.indexOf(activeLanguage)
+        activeLanguage = if (idx < 0 || enabledLanguages.size <= 1) {
+            enabledLanguages.firstOrNull() ?: "English"
+        } else {
+            enabledLanguages[(idx + 1) % enabledLanguages.size]
+        }
+    }
 
     val energyRemaining: Int get() = (energyAllowed - energyUsed).coerceAtLeast(0)
 

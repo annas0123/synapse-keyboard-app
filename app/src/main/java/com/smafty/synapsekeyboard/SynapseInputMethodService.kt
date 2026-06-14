@@ -42,6 +42,7 @@ import com.smafty.synapsekeyboard.ui.keyboard.ClipboardItem
 import com.smafty.synapsekeyboard.ui.keyboard.TOOL_CLIPBOARD
 import com.smafty.synapsekeyboard.ui.keyboard.TOOL_TEXT_NAV
 import com.smafty.synapsekeyboard.ui.keyboard.TOOL_AI_PROMPTS
+import com.smafty.synapsekeyboard.data.model.SynapseModel
 import com.smafty.synapsekeyboard.ui.theme.SynapseKeyboardTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -195,6 +196,17 @@ class SynapseInputMethodService :
         val prefs = getSharedPreferences("synapse_prefs", Context.MODE_PRIVATE)
         prefs.edit().putFloat("keyboard_height_scale", scale).apply()
         kbState.keyHeightScale = scale  // immediate live resize
+    }
+
+    /**
+     * Persists the selected AI engine to SharedPreferences and hot-reloads the
+     * keyboard state so the change takes effect immediately without a restart.
+     */
+    fun saveSelectedModel(model: SynapseModel) {
+        val prefs = getSharedPreferences("synapse_prefs", Context.MODE_PRIVATE)
+        prefs.edit().putString("synapse_selected_model", model.key).apply()
+        kbState.selectedModel = model  // immediate hot-reload
+        Toast.makeText(this, "Switched to ${model.displayName}", Toast.LENGTH_SHORT).show()
     }
 
     // -----------------------------------------------------------------------
@@ -403,6 +415,20 @@ class SynapseInputMethodService :
 
         // Load persisted visible tools (Phase 1 §3)
         kbState.visibleTools = loadVisibleTools(prefs)
+
+        // Load persisted AI engine selection — defaults to S1 if not yet set
+        val modelKey = prefs.getString("synapse_selected_model", SynapseModel.S1.key)
+        kbState.selectedModel = SynapseModel.fromKey(modelKey)
+
+        // Load persisted language preferences
+        val savedEnabledLangs = prefs.getStringSet("synapse_enabled_languages", setOf("English"))
+            ?.toList()?.sorted() ?: listOf("English")
+        // Ensure English is always present
+        val enabledLangs = if ("English" !in savedEnabledLangs) listOf("English") + savedEnabledLangs
+                           else savedEnabledLangs
+        kbState.enabledLanguages = enabledLangs
+        kbState.activeLanguage   = prefs.getString("synapse_active_language", "English")
+            ?.takeIf { it in enabledLangs } ?: "English"
 
         // -------------------------------------------------------------------
         // Doc 19: Register clipboard listener per IME window (Android 10+ safety)
@@ -639,6 +665,35 @@ class SynapseInputMethodService :
             return
         }
 
+        // ── PRE-FLIGHT CREDIT CHECK (Industry standard: check BEFORE API call) ──
+        val remaining = EnergyQuotaRepository.energyRemaining.value
+
+        // Gate 1: Zero-credit block — never call the API with 0 credits
+        if (remaining <= 0) {
+            Toast.makeText(
+                this,
+                "⚡ No energy left. Purchase more to continue using AI.",
+                Toast.LENGTH_LONG
+            ).show()
+            return  // Hard stop — OpenRouter API is never contacted
+        }
+
+        // Gate 2: Overflow abuse protection — estimate cost before sending
+        // Formula: chars ÷ 4 = approx prompt tokens → × 0.75 = word-energy
+        // Add 150 output buffer (conservative estimate for typical keyboard AI output)
+        val estimatedInputEnergy = (textToProcess.length / 4f * 0.75f).toInt().coerceAtLeast(1)
+        val estimatedTotalCost   = estimatedInputEnergy + 150
+
+        if (estimatedTotalCost > remaining) {
+            Toast.makeText(
+                this,
+                "⚡ Not enough energy ($remaining left). Shorten your text or purchase more credits.",
+                Toast.LENGTH_LONG
+            ).show()
+            return  // Hard stop — prevents spending more energy than the user has
+        }
+        // ─────────────────────────────────────────────────────────────────────────
+
         // Blueprint 27 §2: Record prompt usage for the Most Active tab
         serviceScope.launch(Dispatchers.IO) {
             db.mostUsedPromptDao().incrementPromptUsage(
@@ -652,6 +707,7 @@ class SynapseInputMethodService :
         // Delegate to OnDemandAiExecutionEngine — non-blocking, with temp buffer interception
         aiEngine.executePrompt(originalText = textToProcess, promptTemplate = action)
     }
+
 
     /**
      * Suspend function invoked by [aiEngine] on Dispatchers.IO.
@@ -694,15 +750,31 @@ class SynapseInputMethodService :
             return Pair("I cannot assist with that request. I am here to help you draft beautiful, clear, and professional text.", Pair(0, 0))
         }
 
-        // ── §5 Model failover routing ─────────────────────────────────────────
-        val primaryModel  = "google/gemini-2.5-flash-lite-preview-06-2025"
-        val fallbackModel = "google/gemini-2.5-flash-lite"
+        // ── §5 Dynamic model routing based on user selection ─────────────────
+        val activeModel   = kbState.selectedModel
+        val primaryModel  = activeModel.primaryModelId
+        val fallbackModel = activeModel.fallbackModelId
+
+        // ── §6 Budget-safe max_tokens calculation ─────────────────────────────
+        // We cannot predict output length, so we LIMIT it via max_tokens.
+        // This physically prevents the model from spending more energy than the user has.
+        //
+        // Formula:
+        //   remaining energy         = R credits
+        //   estimated input energy   = (text chars ÷ 4 tokens) × 0.75  [approx]
+        //   budget for output energy = R - inputEstimate  (floor 0)
+        //   max output tokens        = outputBudget ÷ 0.75
+        //   hard cap                 = 1024 tokens (enough for any keyboard use case)
+        val remainingEnergy     = EnergyQuotaRepository.energyRemaining.value
+        val estimatedInputEnergy = ((text.length + prompt.length) / 4f * 0.75f).toInt().coerceAtLeast(1)
+        val outputEnergyBudget  = (remainingEnergy - estimatedInputEnergy).coerceAtLeast(10)
+        val maxOutputTokens     = (outputEnergyBudget / 0.75f).toInt().coerceIn(10, 1024)
 
         return try {
-            callOpenRouter(text, prompt, primaryModel)
+            callOpenRouter(text, prompt, primaryModel, maxOutputTokens)
         } catch (_: Exception) {
             // Auto-route to fallback — silently, no UI noise
-            callOpenRouter(text, prompt, fallbackModel)
+            callOpenRouter(text, prompt, fallbackModel, maxOutputTokens)
             // If fallback also fails, the exception propagates to the engine Error state
         }
     }
@@ -710,10 +782,19 @@ class SynapseInputMethodService :
     /**
      * Executes an HTTP request against OpenRouter with the given model.
      *
+     * @param maxTokens Hard cap on output tokens derived from the user's remaining energy budget.
+     *                  The model physically cannot output more tokens than this value, which
+     *                  guarantees spending never exceeds the user's available credits.
+     *
      * Returns Pair<cleanedText, Pair<inputWords, outputWords>> where word counts
      * are derived from the API's usage object: tokens × 0.75 (rounded to nearest int).
      */
-    private suspend fun callOpenRouter(text: String, prompt: String, model: String): Pair<String, Pair<Int, Int>> {
+    private suspend fun callOpenRouter(
+        text: String,
+        prompt: String,
+        model: String,
+        maxTokens: Int = 1024
+    ): Pair<String, Pair<Int, Int>> {
         val apiKey = BuildConfig.OPENROUTER_API_KEY
         if (apiKey.isBlank()) {
             throw IllegalStateException("OpenRouter API key is missing.")
@@ -735,6 +816,7 @@ class SynapseInputMethodService :
 
         val jsonPayload = JSONObject().apply {
             put("model", model)
+            put("max_tokens", maxTokens)  // ← Budget-safe hard cap: model cannot exceed this
             put("messages", JSONArray().apply {
                 put(JSONObject().apply { put("role", "system"); put("content", systemPrompt) })
                 put(JSONObject().apply { put("role", "user");   put("content", userPrompt)   })

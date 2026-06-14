@@ -27,8 +27,8 @@ android {
         applicationId = "com.smafty.synapsekeyboard"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1"
 
         buildConfigField("String", "OPENROUTER_API_KEY",   "\"$openRouterApiKey\"")
         buildConfigField("String", "SUPABASE_URL",         "\"$supabaseUrl\"")

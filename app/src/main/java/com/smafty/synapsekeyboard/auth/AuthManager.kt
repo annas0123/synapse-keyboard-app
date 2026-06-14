@@ -16,6 +16,11 @@ import io.github.jan.supabase.auth.providers.builtin.IDToken
 import io.github.jan.supabase.auth.user.UserInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.util.concurrent.TimeUnit
 
 private const val TAG = "AuthManager"
 
@@ -135,6 +140,11 @@ object AuthManager {
             }
 
             Log.i(TAG, "Google sign-in success: user=${currentUserId}")
+
+            // ── Device fraud check (fire-and-forget, never blocks login) ──────
+            val deviceId = generateDeviceFingerprint(context)
+            checkDeviceOnLogin(context, deviceId)
+
             AuthResult.Success
 
         } catch (e: GetCredentialCancellationException) {
@@ -169,6 +179,69 @@ object AuthManager {
         } catch (e: Exception) {
             Log.w(TAG, "Sign-out error (session was probably already invalid): ${e.message}")
             // Swallow the error — the local session is cleared regardless
+        }
+    }
+
+    // ── Device fraud check ────────────────────────────────────────────────────
+
+    /**
+     * Calls the check-device-on-login Supabase Edge Function with the device fingerprint.
+     *
+     * This is FIRE-AND-FORGET:
+     *   - Any network failure is swallowed silently
+     *   - The user is NEVER blocked from logging in due to this call
+     *   - The keyboard always remains functional regardless of the result
+     *
+     * Server-side logic handles all 6 rules:
+     *   Rule 1: Different account on same device → energy set to 0
+     *   Rule 2: Same account on different devices → always allowed
+     *   Rule 3: Website user first mobile login → safe storage
+     *   Rule 4: Paid users → all checks skipped
+     *   Rule 5: Existing (pre-system) accounts → grandfathered
+     *   Rule 6: Purchase clears flags (handled by payment edge functions)
+     */
+    private suspend fun checkDeviceOnLogin(context: Context, deviceId: String) {
+        withContext(Dispatchers.IO) {
+            try {
+                // Get the current Supabase JWT (needed to authenticate the edge function call)
+                val session = supabase.auth.currentSessionOrNull()
+                val jwt = session?.accessToken
+
+                if (jwt.isNullOrBlank()) {
+                    Log.w(TAG, "[DeviceCheck] No JWT available — skipping device check")
+                    return@withContext
+                }
+
+                val supabaseUrl = BuildConfig.SUPABASE_URL.trimEnd('/')
+                val url = "$supabaseUrl/functions/v1/check-device-on-login"
+
+                val json = """{"device_id":"$deviceId"}"""
+                val body = json.toRequestBody("application/json".toMediaType())
+
+                val client = OkHttpClient.Builder()
+                    .connectTimeout(10, TimeUnit.SECONDS)
+                    .readTimeout(15, TimeUnit.SECONDS)
+                    .build()
+
+                val request = Request.Builder()
+                    .url(url)
+                    .post(body)
+                    .addHeader("Authorization", "Bearer $jwt")
+                    .addHeader("Content-Type", "application/json")
+                    .build()
+
+                val response = client.newCall(request).execute()
+                val responseBody = response.body?.string() ?: ""
+
+                Log.i(TAG, "[DeviceCheck] Status: ${response.code} | Body: $responseBody")
+
+                // No UI action needed — server has already set energy to 0 if flagged.
+                // The keyboard works normally regardless; AI just won't respond with 0 energy.
+
+            } catch (e: Exception) {
+                // Non-critical — log silently, NEVER surface to user
+                Log.w(TAG, "[DeviceCheck] Failed silently (non-blocking): ${e.message}")
+            }
         }
     }
 }

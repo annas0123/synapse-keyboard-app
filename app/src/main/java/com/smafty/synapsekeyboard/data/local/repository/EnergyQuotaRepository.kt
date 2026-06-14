@@ -141,14 +141,17 @@ object EnergyQuotaRepository {
     suspend fun syncTodayStats(userId: String): Unit = withContext(Dispatchers.IO) {
         if (userId.isEmpty()) return@withContext
         try {
-            val todayDate = java.time.LocalDate.now().toString()
-            Log.d(TAG, "Syncing today's prompt stats from Supabase for $userId since $todayDate...")
+            val todayStartUtc = java.time.LocalDate.now()
+                .atStartOfDay(java.time.ZoneId.systemDefault())
+                .toInstant()
+                .toString()
+            Log.d(TAG, "Syncing today's prompt stats from Supabase for $userId since $todayStartUtc...")
 
             val rows = supabase.from("energy_transactions")
                 .select {
                     filter {
                         eq("user_id", userId)
-                        gte("created_at", todayDate)
+                        gte("created_at", todayStartUtc)
                     }
                 }
                 .decodeList<RemoteEnergyTransaction>()
