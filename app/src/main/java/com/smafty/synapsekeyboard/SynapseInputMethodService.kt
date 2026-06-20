@@ -5,6 +5,9 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.inputmethodservice.InputMethodService
+import android.os.Build
+import android.os.Vibrator
+import android.os.VibratorManager
 import android.provider.Settings
 import android.view.KeyEvent
 import android.view.View
@@ -33,6 +36,7 @@ import com.smafty.synapsekeyboard.editor.TextEditorCore
 import com.smafty.synapsekeyboard.engine.OnDemandAiExecutionEngine
 import com.smafty.synapsekeyboard.ui.keyboard.AiOutputState
 import com.smafty.synapsekeyboard.ui.keyboard.KeySoundEngine
+import com.smafty.synapsekeyboard.ui.keyboard.HapticEngine
 import com.smafty.synapsekeyboard.ui.keyboard.EmojiProvider
 import com.smafty.synapsekeyboard.ui.keyboard.AiProcessingState
 import com.smafty.synapsekeyboard.ui.keyboard.KeyboardUiState
@@ -125,6 +129,19 @@ class SynapseInputMethodService :
     // -----------------------------------------------------------------------
     private val textEditorCore = TextEditorCore()
     private val httpClient by lazy { OkHttpClient() }
+
+    // Vibrator for key-tap haptic feedback (HapticEngine). Resolved lazily so
+    // the IME doesn't touch the system service until the first vibrate() call.
+    // Uses VibratorManager on API 31+ (VIBRATOR_SERVICE is deprecated there).
+    private val vibrator: Vibrator? by lazy {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val mgr = getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager
+            mgr?.defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+        }
+    }
 
     // -----------------------------------------------------------------------
     // On-Demand AI Execution Engine (doc 23)
@@ -354,6 +371,9 @@ class SynapseInputMethodService :
         // Load persisted key sound preset
         KeySoundEngine.loadPreset(prefs)
 
+        // Load persisted key-tap vibration flag
+        HapticEngine.loadEnabled(prefs)
+
         // Load persisted emoji recents
         EmojiProvider.loadRecents(prefs)
 
@@ -420,15 +440,8 @@ class SynapseInputMethodService :
         val modelKey = prefs.getString("synapse_selected_model", SynapseModel.S1.key)
         kbState.selectedModel = SynapseModel.fromKey(modelKey)
 
-        // Load persisted language preferences
-        val savedEnabledLangs = prefs.getStringSet("synapse_enabled_languages", setOf("English"))
-            ?.toList()?.sorted() ?: listOf("English")
-        // Ensure English is always present
-        val enabledLangs = if ("English" !in savedEnabledLangs) listOf("English") + savedEnabledLangs
-                           else savedEnabledLangs
-        kbState.enabledLanguages = enabledLangs
-        kbState.activeLanguage   = prefs.getString("synapse_active_language", "English")
-            ?.takeIf { it in enabledLangs } ?: "English"
+        // English-only keyboard — language pref is always "English"
+        kbState.activeLanguage = "English"
 
         // -------------------------------------------------------------------
         // Doc 19: Register clipboard listener per IME window (Android 10+ safety)
@@ -575,6 +588,7 @@ class SynapseInputMethodService :
         ic.commitText(char, 1)
 
         KeySoundEngine.playClick()
+        HapticEngine.vibrate(vibrator)
 
         // Record emoji to recents if the character is an emoji
         if (EmojiProvider.isEmoji(char)) {
@@ -589,18 +603,19 @@ class SynapseInputMethodService :
 
         val ic = currentInputConnection ?: return
 
-
-
-        // Get selected text
-        val selectedText = ic.getSelectedText(0)
-
-        if (!selectedText.isNullOrEmpty()) {
-            // Delete selected text
-            ic.commitText("", 1)
-        } else {
-            // Delete one character before cursor
-            ic.deleteSurroundingText(1, 0)
+        // Try deleting one character first (fast path — no IPC to check selection).
+        // If text was selected, deleteSurroundingText does nothing, so we fall back.
+        val beforeText = ic.getTextBeforeCursor(1, 0)
+        ic.deleteSurroundingText(1, 0)
+        // If nothing was deleted, there might be a selection — clear it.
+        if (beforeText.isNullOrEmpty()) {
+            ic.getSelectedText(0)?.let { sel ->
+                if (sel.isNotEmpty()) ic.commitText("", 1)
+            }
         }
+
+        KeySoundEngine.playClick()
+        HapticEngine.vibrate(vibrator)
     }
 
     private fun doReturn() {
@@ -631,10 +646,16 @@ class SynapseInputMethodService :
 
         // Default: insert newline
         ic.commitText("\n", 1)
+
+        KeySoundEngine.playClick()
+        HapticEngine.vibrate(vibrator)
     }
 
     private fun doSpace() {
         currentInputConnection?.commitText(" ", 1)
+
+        KeySoundEngine.playClick()
+        HapticEngine.vibrate(vibrator)
     }
 
     // -----------------------------------------------------------------------

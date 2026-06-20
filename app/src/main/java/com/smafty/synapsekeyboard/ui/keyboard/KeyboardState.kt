@@ -88,22 +88,10 @@ class KeyboardUiState {
     var selectedModel by mutableStateOf(SynapseModel.S1)
 
     // ---------------------------------------------------------------------------
-    // Multi-Language Support — loaded from SharedPreferences on keyboard open.
+    // Language — English-only. Translation to other languages happens via AI prompts.
     // ---------------------------------------------------------------------------
-    /** The currently active keyboard language (e.g. "English", "Urdu"). */
+    /** The active keyboard layout. Always "English" (the only supported layout). */
     var activeLanguage by mutableStateOf("English")
-    /** Ordered list of languages the user has enabled in Settings. Always contains at least "English". */
-    var enabledLanguages by mutableStateOf<List<String>>(listOf("English"))
-
-    /** Cycles activeLanguage to the next one in enabledLanguages (wraps around). */
-    fun cycleLanguage() {
-        val idx = enabledLanguages.indexOf(activeLanguage)
-        activeLanguage = if (idx < 0 || enabledLanguages.size <= 1) {
-            enabledLanguages.firstOrNull() ?: "English"
-        } else {
-            enabledLanguages[(idx + 1) % enabledLanguages.size]
-        }
-    }
 
     val energyRemaining: Int get() = (energyAllowed - energyUsed).coerceAtLeast(0)
 

@@ -53,13 +53,19 @@ data class PresetPrompt(val id: String, val title: String, val instruction: Stri
 
 val SYNAPSE_PRESETS = listOf(
     PresetPrompt("fix_grammar",   "Fix Grammar",       "Fix all grammar and spelling mistakes while keeping the original meaning and tone."),
-    PresetPrompt("translate_en",  "Translate to Urdu", "Translate this text accurately to Urdu script. Return only the translated text."),
+    PresetPrompt("translate_en",  "Translate to Urdu", "Translate this text accurately into natural, correct Urdu (اردو). Keep the meaning exact and the tone the same. Return only the translated text."),
     PresetPrompt("formal_tone",   "Formal Tone",       "Rewrite this in a professional and formal tone suitable for a business email."),
     PresetPrompt("make_shorter",  "Make Shorter",      "Shorten this text to its key point in 1-2 concise sentences without losing the core message."),
     PresetPrompt("friendly_tone", "Friendly Tone",     "Rewrite this in a warm, friendly and conversational tone."),
     PresetPrompt("expand_text",   "Expand Text",       "Expand this text with more detail and depth while keeping the original intent."),
     PresetPrompt("bullet_points", "Bullet Points",     "Convert this text into a clean bullet-point list of key facts."),
-    PresetPrompt("subject_line",  "Email Subject",     "Generate a compelling email subject line for this text.")
+    PresetPrompt("subject_line",  "Email Subject",     "Generate a compelling email subject line for this text."),
+    // ── Real-time use case presets (see jawab_use_cases.md Drafts 1–4, 6) ──
+    PresetPrompt("reply_client",  "Reply to Client",           "Read the client's message above and write a professional, polite reply that addresses their question directly, sounds confident and friendly, and is short. Match the language the client wrote in."),
+    PresetPrompt("match_job",     "Match Job & Write Proposal","I will give my details and a job's requirements below. Write a short, professional proposal or cover message that highlights how my skills match the job, sounds confident, and is ready to send on LinkedIn, Indeed, or any hiring platform."),
+    PresetPrompt("reply_letter",  "Reply to Letter or Email",  "Read the letter or email above and write a clear, professional reply that answers everything it asks. Keep the tone polite and formal, and keep it short."),
+    PresetPrompt("reddit_comment","Reddit Comment",            "Write a thoughtful, natural-sounding Reddit comment about the topic above. Make it friendly, conversational, and add value to the discussion. Avoid sounding like an ad or a bot."),
+    PresetPrompt("translate_any", "Translate (Any Language)",  "Translate the text above into the language I name. Keep the meaning exact and the tone natural for a native speaker. If I don't name a language, ask me which language in one short line.")
 )
 
 // ── Tabs ────────────────────────────────--------------------------------────
@@ -684,8 +690,14 @@ private fun PromptBottomSheet(
 ) {
     var titleText       by remember { mutableStateOf(editingPrompt?.title ?: "") }
     var instructionText by remember { mutableStateOf(editingPrompt?.prompt ?: "") }
-    val titleError = titleText.isNotEmpty() && titleText.length > 16
+    // Single source of truth: title may be up to 30 chars everywhere (input, error, counter).
+    val titleMaxChars = 30
+    val titleError = titleText.isNotEmpty() && titleText.length > titleMaxChars
     val isValid = titleText.isNotBlank() && instructionText.isNotBlank() && !titleError
+    val context = LocalContext.current
+    val clipboardManager = androidx.core.content.ContextCompat.getSystemService(
+        context, android.content.ClipboardManager::class.java
+    )
 
     Column(
         modifier = Modifier
@@ -705,13 +717,19 @@ private fun PromptBottomSheet(
         Spacer(Modifier.height(6.dp))
         OutlinedTextField(
             value = titleText,
-            onValueChange = { if (it.length <= 20) titleText = it },
+            onValueChange = { if (it.length <= titleMaxChars) titleText = it },
             placeholder = { Text("e.g. Fix Grammar", color = MutedGrey.copy(alpha = 0.5f)) },
             isError = titleError,
+            trailingIcon = {
+                PasteIconButton {
+                    val clip = clipboardManager?.primaryClip?.getItemAt(0)?.coerceToText(context)?.toString().orEmpty()
+                    if (clip.isNotBlank()) titleText = clip.take(titleMaxChars)
+                }
+            },
             supportingText = {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    if (titleError) Text("Max 16 chars for keyboard display", color = Color(0xFFEF4444), fontSize = 11.sp) else Spacer(Modifier.weight(1f))
-                    Text("${titleText.length}/16", color = MutedGrey.copy(alpha = 0.6f), fontSize = 11.sp)
+                    if (titleError) Text("Max $titleMaxChars chars for keyboard display", color = Color(0xFFEF4444), fontSize = 11.sp) else Spacer(Modifier.weight(1f))
+                    Text("${titleText.length}/$titleMaxChars", color = MutedGrey.copy(alpha = 0.6f), fontSize = 11.sp)
                 }
             },
             colors = OutlinedTextFieldDefaults.colors(
@@ -734,6 +752,14 @@ private fun PromptBottomSheet(
             value = instructionText,
             onValueChange = { instructionText = it },
             placeholder = { Text("Describe what the AI should do with the text…", color = MutedGrey.copy(alpha = 0.5f)) },
+            trailingIcon = {
+                PasteIconButton(label = "Paste", withLabel = true) {
+                    val clip = clipboardManager?.primaryClip?.getItemAt(0)?.coerceToText(context)?.toString().orEmpty()
+                    if (clip.isNotBlank()) {
+                        instructionText = if (instructionText.isBlank()) clip.trim() else "${instructionText.trimEnd()}\n$clip"
+                    }
+                }
+            },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = ElectricPurple,
                 unfocusedBorderColor = MutedGrey.copy(alpha = 0.3f),
@@ -754,6 +780,44 @@ private fun PromptBottomSheet(
             modifier = Modifier.fillMaxWidth().height(50.dp)
         ) {
             Text(if (editingPrompt != null) "Save Changes" else "Add Prompt", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+// ── Paste icon button ──────────────────────────────────────────────────────────
+// Android IME long-press paste is unreliable when Synapse is the active keyboard.
+// This explicit button reads the system clipboard on tap instead. Used on both the
+// Title and Full Instruction fields in the add/edit bottom sheet.
+@Composable
+private fun PasteIconButton(
+    label: String = "Paste",
+    withLabel: Boolean = false,
+    onPaste: () -> Unit
+) {
+    if (withLabel) {
+        Row(
+            modifier = Modifier
+                .padding(end = 4.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(ElectricPurple.copy(alpha = 0.12f))
+                .border(1.dp, ElectricPurple.copy(alpha = 0.3f), RoundedCornerShape(10.dp))
+                .clickable(onClick = onPaste)
+                .padding(horizontal = 10.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Icon(
+                Icons.Rounded.ContentPaste, contentDescription = label,
+                tint = ElectricPurple, modifier = Modifier.size(15.dp)
+            )
+            Text(label, color = ElectricPurple, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        }
+    } else {
+        IconButton(onClick = onPaste) {
+            Icon(
+                Icons.Rounded.ContentPaste, contentDescription = label,
+                tint = MutedGrey.copy(alpha = 0.7f), modifier = Modifier.size(18.dp)
+            )
         }
     }
 }

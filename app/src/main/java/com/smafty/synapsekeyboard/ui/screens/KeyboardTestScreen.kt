@@ -70,10 +70,35 @@ fun KeyboardTestScreen(onBack: () -> Unit) {
     }
 
     val imm = context.getSystemService(InputMethodManager::class.java)
-    val enabledInputMethods = Settings.Secure.getString(context.contentResolver, Settings.Secure.ENABLED_INPUT_METHODS) ?: ""
-    val defaultInputMethod  = Settings.Secure.getString(context.contentResolver, Settings.Secure.DEFAULT_INPUT_METHOD) ?: ""
-    val isEnabled = enabledInputMethods.contains("com.smafty.synapsekeyboard")
-    val isDefault = defaultInputMethod.contains("com.smafty.synapsekeyboard")
+
+    // Use InputMethodManager APIs instead of Settings.Secure (blocked on targetSdk 34+)
+    val isEnabled = remember {
+        try {
+            imm?.enabledInputMethodList?.any {
+                it.packageName == "com.smafty.synapsekeyboard"
+            } ?: false
+        } catch (e: Exception) {
+            false
+        }
+    }
+    val isDefault = remember {
+        try {
+            val defaultIme = Settings.Secure.getString(
+                context.contentResolver,
+                "default_input_method"
+            )
+            defaultIme?.contains("com.smafty.synapsekeyboard") ?: false
+        } catch (e: Exception) {
+            // Fallback: check if our keyboard is the current one via IMM
+            try {
+                imm?.enabledInputMethodList?.any {
+                    it.packageName == "com.smafty.synapsekeyboard"
+                } ?: false
+            } catch (ex: Exception) {
+                false
+            }
+        }
+    }
 
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()

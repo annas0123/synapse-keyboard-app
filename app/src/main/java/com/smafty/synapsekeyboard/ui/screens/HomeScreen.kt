@@ -101,10 +101,14 @@ fun HomeScreen() {
         val packageName = context.packageName
         isKeyboardEnabled.value = imm?.enabledInputMethodList
             ?.any { it.packageName == packageName } == true
-        val defaultIme = Settings.Secure.getString(
-            context.contentResolver, Settings.Secure.DEFAULT_INPUT_METHOD
-        )
-        isKeyboardDefault.value = defaultIme?.contains(packageName) == true
+        isKeyboardDefault.value = try {
+            val defaultIme = Settings.Secure.getString(
+                context.contentResolver, "default_input_method"
+            )
+            defaultIme?.contains(packageName) == true
+        } catch (e: Exception) {
+            false
+        }
     }
 
     val db = remember { SynapseDatabase.getInstance(context) }

@@ -39,6 +39,7 @@ import androidx.compose.material.icons.rounded.Payment
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.rounded.Vibration
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -46,7 +47,6 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import com.smafty.synapsekeyboard.data.model.LanguageLayouts
 import com.smafty.synapsekeyboard.data.model.SynapseModel
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -79,6 +79,7 @@ import com.smafty.synapsekeyboard.ui.theme.AppThemePreset
 import com.smafty.synapsekeyboard.ui.theme.TextColor
 import com.smafty.synapsekeyboard.ui.keyboard.KeySoundEngine
 import com.smafty.synapsekeyboard.ui.keyboard.KeySoundPreset
+import com.smafty.synapsekeyboard.ui.keyboard.HapticEngine
 import kotlinx.coroutines.launch
 
 // ---------------------------------------------------------------------------
@@ -95,19 +96,12 @@ fun SettingsScreen(
     val prefs   = remember { context.getSharedPreferences("synapse_prefs", android.content.Context.MODE_PRIVATE) }
 
     var soundEnabled      by remember { mutableStateOf(KeySoundEngine.activePreset != KeySoundPreset.NONE) }
+    var vibrationEnabled  by remember { mutableStateOf(HapticEngine.enabled) }
     var showSignOutDialog by remember { mutableStateOf(false) }
     var showThemeDialog   by remember { mutableStateOf(false) }
 
     var selectedModelKey by remember {
         mutableStateOf(prefs.getString("synapse_selected_model", SynapseModel.S1.key) ?: SynapseModel.S1.key)
-    }
-
-    // Language selection state — persisted as a StringSet in SharedPreferences
-    var enabledLanguages by remember {
-        mutableStateOf(
-            prefs.getStringSet("synapse_enabled_languages", setOf("English"))
-                ?.toSet() ?: setOf("English")
-        )
     }
 
     val userName  = AuthManager.currentUserName  ?: "Guest"
@@ -245,6 +239,18 @@ fun SettingsScreen(
                     description = if (soundEnabled) "Preset: ${KeySoundEngine.activePreset.displayName}" else "Tap to configure",
                     onClick     = { onNavigateToKeySounds?.invoke() }
                 )
+                SettingsDivider()
+                ToggleSettingsRow(
+                    icon        = Icons.Rounded.Vibration,
+                    iconTint    = ElectricPurple,
+                    label       = "Vibration on Key Tap",
+                    description = "Vibrate when you press a key.",
+                    checked     = vibrationEnabled,
+                    onCheckedChange = { enabled ->
+                        vibrationEnabled = enabled
+                        HapticEngine.setEnabled(prefs, enabled)
+                    }
+                )
             }
         }
 
@@ -333,85 +339,6 @@ fun SettingsScreen(
                                     )
                                 }
                             }
-                        }
-                    }
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // ── Section: Keyboard Languages ────────────────────────────────────────────────
-        AnimatedVisibility(
-            visible = visible,
-            enter   = fadeIn(tween(500, 130)) + slideInVertically(tween(500, 130)) { 40 }
-        ) {
-            SettingsSection(title = "Keyboard Languages") {
-                Column(
-                    modifier = Modifier.padding(vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Text(
-                        text  = "Select languages. The 🌐 key will cycle between them.",
-                        color = MutedGrey.copy(alpha = 0.65f),
-                        fontSize = 12.sp,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-                    LanguageLayouts.allLanguages.forEach { lang ->
-                        val isChecked  = lang in enabledLanguages
-                        val isEnglish  = lang == "English"   // English cannot be disabled
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(
-                                    if (isChecked) ElectricPurple.copy(alpha = 0.08f)
-                                    else Color(0xFF161622)
-                                )
-                                .clickable(enabled = !isEnglish) {
-                                    val updated = if (isChecked) {
-                                        enabledLanguages - lang
-                                    } else {
-                                        enabledLanguages + lang
-                                    }
-                                    // Always keep English
-                                    val final = if ("English" !in updated) updated + "English" else updated
-                                    enabledLanguages = final
-                                    prefs.edit().putStringSet("synapse_enabled_languages", final).apply()
-                                }
-                                .padding(horizontal = 16.dp, vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text       = lang,
-                                    color      = if (isChecked) Color.White else MutedGrey,
-                                    fontWeight = if (isChecked) FontWeight.SemiBold else FontWeight.Normal,
-                                    fontSize   = 14.sp
-                                )
-                                if (isEnglish) {
-                                    Text(
-                                        text     = "Always enabled",
-                                        color    = MutedGrey.copy(alpha = 0.5f),
-                                        fontSize = 11.sp
-                                    )
-                                }
-                            }
-                            Switch(
-                                checked         = isChecked,
-                                onCheckedChange = if (isEnglish) null else { checked ->
-                                    val updated = if (checked) enabledLanguages + lang else enabledLanguages - lang
-                                    val final   = if ("English" !in updated) updated + "English" else updated
-                                    enabledLanguages = final
-                                    prefs.edit().putStringSet("synapse_enabled_languages", final).apply()
-                                },
-                                colors = SwitchDefaults.colors(
-                                    checkedThumbColor       = Color.White,
-                                    checkedTrackColor       = ElectricPurple,
-                                    uncheckedThumbColor     = MutedGrey,
-                                    uncheckedTrackColor     = Color(0xFF2A2A3A)
-                                )
-                            )
                         }
                     }
                 }
@@ -792,6 +719,56 @@ private fun ActionSettingsRow(
             contentDescription = null,
             tint               = MutedGrey.copy(alpha = 0.35f),
             modifier           = Modifier.size(20.dp)
+        )
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Toggle row — same premium card styling as ActionSettingsRow, but with a
+// Switch instead of a chevron. Used for on/off preferences (e.g. vibration).
+// ---------------------------------------------------------------------------
+@Composable
+private fun ToggleSettingsRow(
+    icon: ImageVector,
+    iconTint: Color,
+    label: String,
+    description: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(38.dp)
+                .clip(RoundedCornerShape(11.dp))
+                .background(
+                    Brush.radialGradient(listOf(iconTint.copy(alpha = 0.20f), iconTint.copy(alpha = 0.05f)))
+                )
+                .border(1.dp, iconTint.copy(alpha = 0.22f), RoundedCornerShape(11.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(imageVector = icon, contentDescription = null, tint = iconTint, modifier = Modifier.size(18.dp))
+        }
+        Spacer(modifier = Modifier.width(14.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(label, color = TextColor, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(description, color = MutedGrey.copy(alpha = 0.65f), fontSize = 12.sp)
+        }
+        Switch(
+            checked          = checked,
+            onCheckedChange  = onCheckedChange,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor    = Color.White,
+                checkedTrackColor    = ElectricPurple,
+                uncheckedThumbColor  = MutedGrey,
+                uncheckedTrackColor  = MutedGrey.copy(alpha = 0.18f)
+            )
         )
     }
 }

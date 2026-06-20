@@ -751,7 +751,6 @@ private fun QwertyLayout(
                     KeyboardMode.SYMBOLS_1 else KeyboardMode.QWERTY
             },
             onEmojiToggle  = { state.switchToEmoji() },
-            onLanguageCycle = { state.cycleLanguage() },
             onSpace       = onSpace,
             onReturn      = onReturn
         )
@@ -807,7 +806,6 @@ private fun SymbolsLayout(
             onChar          = onChar,
             onModeToggle    = { state.mode = KeyboardMode.QWERTY },
             onEmojiToggle   = { state.switchToEmoji() },
-            onLanguageCycle = { state.cycleLanguage() },
             onSpace         = onSpace,
             onReturn        = onReturn
         )
@@ -957,7 +955,7 @@ private fun EmojiLayout(
 }
 
 // ---------------------------------------------------------------------------
-// Bottom row: mode-switch | , | 🌐/😊 | space | . | return
+// Bottom row: mode-switch | , | 😊 | space | . | return
 // ---------------------------------------------------------------------------
 @Composable
 private fun BottomRow(
@@ -967,12 +965,10 @@ private fun BottomRow(
     onChar: (String) -> Unit,
     onModeToggle: () -> Unit,
     onEmojiToggle: () -> Unit,
-    onLanguageCycle: () -> Unit,
     onSpace: () -> Unit,
     onReturn: () -> Unit,
 ) {
     val theme = LocalKeyboardTheme.current
-    val hasMultipleLanguages = state.enabledLanguages.size > 1
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -1001,7 +997,7 @@ private fun BottomRow(
             Text(",", color = theme.keyTextMuted, fontSize = 16.sp)
         }
 
-        // Globe (language cycle) OR Emoji toggle
+        // Emoji toggle (language cycle removed — English-only keyboard)
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -1009,27 +1005,18 @@ private fun BottomRow(
                 .clickable(
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() },
-                    onClick = if (hasMultipleLanguages) onLanguageCycle else onEmojiToggle
+                    onClick = onEmojiToggle
                 )
                 .padding(horizontal = KeyHorizontalPadding)
                 .keyStyle(theme, true),
             contentAlignment = Alignment.Center
         ) {
-            if (hasMultipleLanguages) {
-                Icon(
-                    imageVector = Icons.Rounded.Language,
-                    contentDescription = "Switch Language",
-                    tint = theme.keyTextMuted,
-                    modifier = Modifier.size(20.dp)
-                )
-            } else {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_emoji),
-                    contentDescription = "Emoji",
-                    tint = theme.keyTextMuted,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
+            Icon(
+                painter = painterResource(id = R.drawable.ic_emoji),
+                contentDescription = "Emoji",
+                tint = theme.keyTextMuted,
+                modifier = Modifier.size(20.dp)
+            )
         }
 
         // Space bar — shows active language name

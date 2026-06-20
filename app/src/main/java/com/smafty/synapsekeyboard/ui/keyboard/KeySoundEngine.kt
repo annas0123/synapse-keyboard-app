@@ -3,6 +3,7 @@ package com.smafty.synapsekeyboard.ui.keyboard
 import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioTrack
+import java.util.concurrent.Executors
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.exp
@@ -34,6 +35,12 @@ object KeySoundEngine {
     private const val SAMPLE_RATE = 44_100
     private const val PREFS_KEY_SOUND = "key_sound_preset"
 
+    // Single-thread executor — reuses the same thread for every click instead of
+    // creating a new Thread per keypress. Daemon threads so the IME can shut down cleanly.
+    private val audioExecutor = Executors.newSingleThreadExecutor { r ->
+        Thread(r).also { it.isDaemon = true }
+    }
+
     // Currently active preset — drives playback per key tap
     var activePreset: KeySoundPreset = KeySoundPreset.NONE
         private set
@@ -55,28 +62,28 @@ object KeySoundEngine {
     }
 
     /**
-     * Plays the active key click sound on a background thread.
-     * Safe to call from the UI thread — uses a daemon thread internally.
+     * Plays the active key click sound on a background thread pool.
+     * Safe to call from the UI thread — reuses a single daemon thread internally.
      */
     fun playClick() {
         if (activePreset == KeySoundPreset.NONE) return
-        Thread {
+        audioExecutor.execute {
             try {
                 val samples = generateSamples(activePreset)
                 playPcmSamples(samples)
             } catch (_: Exception) { /* swallow — audio must never crash the IME */ }
-        }.also { it.isDaemon = true }.start()
+        }
     }
 
     /** Plays a one-shot preview of any preset (used in Settings). */
     fun preview(preset: KeySoundPreset) {
         if (preset == KeySoundPreset.NONE) return
-        Thread {
+        audioExecutor.execute {
             try {
                 val samples = generateSamples(preset)
                 playPcmSamples(samples)
             } catch (_: Exception) { }
-        }.also { it.isDaemon = true }.start()
+        }
     }
 
     // -----------------------------------------------------------------------
