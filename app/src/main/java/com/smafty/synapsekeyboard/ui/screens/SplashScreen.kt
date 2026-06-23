@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
@@ -26,11 +25,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -41,29 +37,39 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
-import com.smafty.synapsekeyboard.ui.theme.DeepSlate
-import com.smafty.synapsekeyboard.ui.theme.ElectricPurple
-import com.smafty.synapsekeyboard.ui.theme.EmeraldGreen
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+// Premium Minimal Design System tokens (inline for splash — no theme dependency)
+private val BgColor      = Color(0xFF0A0A0F)
+private val VioletAccent = Color(0xFF7C5CFC)
+private val TextPrimary  = Color(0xFFF0F0F5)
+private val TextMuted    = Color(0xFF8888A0)
+
+/**
+ * SplashScreen — Phase 3 redesign.
+ * - Pure #0A0A0F background (OLED black)
+ * - Subtle violet glow ring (20% opacity) only — no green blob, no mesh
+ * - Duration: 1.2s (snappier)
+ * - Lottie animation preserved
+ */
 @Composable
 fun SplashScreen(onSplashFinished: () -> Unit) {
     val alpha = remember { Animatable(0f) }
-    val scale = remember { Animatable(0.75f) }
+    val scale = remember { Animatable(0.80f) }
 
     // Lottie composition
     val composition by rememberLottieComposition(LottieCompositionSpec.Asset("lottie_splash.json"))
     val lottieProgress by animateLottieCompositionAsState(
-        composition  = composition,
-        iterations   = LottieConstants.IterateForever
+        composition = composition,
+        iterations  = LottieConstants.IterateForever
     )
 
-    // Pulsing glow ring animation
+    // Subtle pulsing glow ring
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
     val pulseScale by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue  = 1.12f,
+        initialValue  = 1f,
+        targetValue   = 1.10f,
         animationSpec = infiniteRepeatable(
             animation  = tween(1400, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
@@ -71,8 +77,8 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
         label = "pulseScale"
     )
     val pulseAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.35f,
-        targetValue  = 0.08f,
+        initialValue  = 0.20f,   // 20% max — subtle per spec
+        targetValue   = 0.06f,
         animationSpec = infiniteRepeatable(
             animation  = tween(1400, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
@@ -82,57 +88,19 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
 
     LaunchedEffect(key1 = true) {
         launch {
-            alpha.animateTo(1f, animationSpec = tween(800, easing = FastOutSlowInEasing))
+            alpha.animateTo(1f, animationSpec = tween(600, easing = FastOutSlowInEasing))
         }
-        scale.animateTo(1f, animationSpec = tween(900, easing = FastOutSlowInEasing))
-        delay(1600L)
+        scale.animateTo(1f, animationSpec = tween(700, easing = FastOutSlowInEasing))
+        delay(1200L)   // 1.2s — faster per spec
         onSplashFinished()
     }
 
     Box(
-        modifier          = Modifier.fillMaxSize(),
-        contentAlignment  = Alignment.Center
+        modifier         = Modifier
+            .fillMaxSize()
+            .background(BgColor),   // Pure near-black — OLED optimised, NO blobs/blurs
+        contentAlignment = Alignment.Center
     ) {
-        // ── Layered ambient background ─────────────────────────────────────────
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(DeepSlate)
-        )
-        // Top-left purple blob
-        Box(
-            modifier = Modifier
-                .size(340.dp)
-                .offset(x = (-80).dp, y = (-120).dp)
-                .clip(CircleShape)
-                .background(ElectricPurple.copy(alpha = 0.10f))
-                .align(Alignment.TopStart)
-        )
-        // Bottom-right teal blob
-        Box(
-            modifier = Modifier
-                .size(280.dp)
-                .offset(x = 80.dp, y = 100.dp)
-                .clip(CircleShape)
-                .background(EmeraldGreen.copy(alpha = 0.08f))
-                .align(Alignment.BottomEnd)
-        )
-        // Center radial highlight
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.radialGradient(
-                        colors = listOf(
-                            ElectricPurple.copy(alpha = 0.14f),
-                            Color.Transparent
-                        ),
-                        center = Offset(0.5f, 0.42f),
-                        radius = 700f
-                    )
-                )
-        )
-
         // ── Content ────────────────────────────────────────────────────────────
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -141,43 +109,43 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
                 .alpha(alpha.value)
                 .scale(scale.value)
         ) {
-            // Pulsing glow ring behind Lottie
+            // Pulsing violet glow ring behind Lottie (20% max opacity per spec)
             Box(contentAlignment = Alignment.Center) {
                 Box(
                     modifier = Modifier
-                        .size(170.dp)
+                        .size(160.dp)
                         .scale(pulseScale)
                         .clip(CircleShape)
-                        .background(ElectricPurple.copy(alpha = pulseAlpha))
+                        .background(VioletAccent.copy(alpha = pulseAlpha))
                 )
                 LottieAnimation(
                     composition = composition,
                     progress    = { lottieProgress },
-                    modifier    = Modifier.size(160.dp)
+                    modifier    = Modifier.size(148.dp)
                 )
             }
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             // App name
             Text(
                 text          = "Synapse",
-                style         = MaterialTheme.typography.displayMedium,
-                fontWeight    = FontWeight.ExtraBold,
-                color         = Color.White,
+                style         = MaterialTheme.typography.headlineLarge,
+                fontWeight    = FontWeight.Bold,
+                color         = TextPrimary,
                 textAlign     = TextAlign.Center,
-                letterSpacing = 2.sp
+                letterSpacing = 1.sp
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
-            // Tagline with gradient
+            // Tagline — muted, spaced caps
             Text(
                 text          = "AI  ·  KEYBOARD",
-                fontSize      = 13.sp,
-                fontWeight    = FontWeight.Bold,
-                letterSpacing = 5.sp,
-                color         = ElectricPurple.copy(alpha = 0.80f),
+                fontSize      = 12.sp,
+                fontWeight    = FontWeight.Medium,
+                letterSpacing = 4.sp,
+                color         = TextMuted,
                 textAlign     = TextAlign.Center
             )
         }

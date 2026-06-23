@@ -69,18 +69,23 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.smafty.synapsekeyboard.auth.AuthManager
-import com.smafty.synapsekeyboard.ui.theme.DeepSlate
-import com.smafty.synapsekeyboard.ui.theme.ElectricPurple
-import com.smafty.synapsekeyboard.ui.theme.EmeraldGreen
-import com.smafty.synapsekeyboard.ui.theme.GlassmorphismColor
-import com.smafty.synapsekeyboard.ui.theme.MutedGrey
 import com.smafty.synapsekeyboard.ui.theme.ThemeManager
 import com.smafty.synapsekeyboard.ui.theme.AppThemePreset
-import com.smafty.synapsekeyboard.ui.theme.TextColor
 import com.smafty.synapsekeyboard.ui.keyboard.KeySoundEngine
 import com.smafty.synapsekeyboard.ui.keyboard.KeySoundPreset
 import com.smafty.synapsekeyboard.ui.keyboard.HapticEngine
 import kotlinx.coroutines.launch
+
+// ── Premium Minimal design tokens ────────────────────────────────────────────
+private val SS_Bg          = Color(0xFF0A0A0F)
+private val SS_Surface     = Color(0xFF141420)
+private val SS_SurfaceHigh = Color(0xFF1C1C2A)
+private val SS_Border      = Color(0xFF2A2A3A)
+private val SS_Violet      = Color(0xFF7C5CFC)
+private val SS_Text        = Color(0xFFF0F0F5)
+private val SS_Muted       = Color(0xFF8888A0)
+private val SS_Error       = Color(0xFFF87171)
+private val EmeraldGreen   = Color(0xFF10B981)
 
 // ---------------------------------------------------------------------------
 // Settings Screen — UI layer upgraded with premium theme design, backend logic preserved.
@@ -113,6 +118,7 @@ fun SettingsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(SS_Bg)
             .verticalScroll(rememberScrollState())
             .statusBarsPadding()
             .padding(horizontal = 20.dp)
@@ -132,7 +138,7 @@ fun SettingsScreen(
                         .clip(RoundedCornerShape(2.dp))
                         .background(
                             Brush.horizontalGradient(
-                                listOf(ElectricPurple, ElectricPurple.copy(alpha = 0.0f))
+                                listOf(SS_Violet, SS_Violet.copy(alpha = 0.0f))
                             )
                         )
                 )
@@ -141,13 +147,13 @@ fun SettingsScreen(
                     text       = "Settings",
                     style      = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.ExtraBold,
-                    color      = TextColor
+                    color      = SS_Text
                 )
                 Spacer(Modifier.height(3.dp))
                 Text(
                     text  = "Preferences & account",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MutedGrey.copy(alpha = 0.75f)
+                    color = SS_Muted.copy(alpha = 0.75f)
                 )
             }
         }
@@ -169,17 +175,17 @@ fun SettingsScreen(
                     Box(
                         modifier = Modifier
                             .size(52.dp)
-                            .shadow(8.dp, CircleShape, spotColor = ElectricPurple.copy(alpha = 0.35f))
+                            .shadow(8.dp, CircleShape, spotColor = SS_Violet.copy(alpha = 0.35f))
                             .clip(CircleShape)
                             .background(
                                 Brush.radialGradient(
                                     colors = listOf(
-                                        ElectricPurple.copy(alpha = 0.22f),
-                                        ElectricPurple.copy(alpha = 0.06f)
+                                        SS_Violet.copy(alpha = 0.22f),
+                                        SS_Violet.copy(alpha = 0.06f)
                                     )
                                 )
                             )
-                            .border(1.5.dp, ElectricPurple.copy(alpha = 0.35f), CircleShape),
+                            .border(1.5.dp, SS_Violet.copy(alpha = 0.35f), CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
@@ -193,14 +199,14 @@ fun SettingsScreen(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text       = userName,
-                            color      = TextColor,
+                            color      = SS_Text,
                             fontWeight = FontWeight.Bold,
                             fontSize   = 15.sp
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text  = userEmail,
-                            color = MutedGrey.copy(alpha = 0.65f),
+                            color = SS_Muted.copy(alpha = 0.65f),
                             fontSize = 12.sp
                         )
                     }
@@ -226,7 +232,7 @@ fun SettingsScreen(
             SettingsSection(title = "Appearance") {
                 ActionSettingsRow(
                     icon        = Icons.Rounded.Settings,
-                    iconTint    = ElectricPurple,
+                    iconTint    = SS_Violet,
                     label       = "App Theme Preset",
                     description = "Selected: ${ThemeManager.currentTheme.displayName}",
                     onClick     = { showThemeDialog = true }
@@ -242,7 +248,7 @@ fun SettingsScreen(
                 SettingsDivider()
                 ToggleSettingsRow(
                     icon        = Icons.Rounded.Vibration,
-                    iconTint    = ElectricPurple,
+                    iconTint    = SS_Violet,
                     label       = "Vibration on Key Tap",
                     description = "Vibrate when you press a key.",
                     checked     = vibrationEnabled,
@@ -268,19 +274,26 @@ fun SettingsScreen(
                 ) {
                     SynapseModel.values().forEach { model ->
                         val isSelected = model.key == selectedModelKey
+                        // Cost badge color based on factor
+                        val costBadgeColor = when {
+                            model.factor < 1.0f  -> Color(0xFF22C55E) // Green — cheap
+                            model.factor <= 1.0f -> Color(0xFF06B6D4) // Cyan — baseline
+                            model.factor <= 5.0f -> Color(0xFFF59E0B) // Amber — expensive
+                            else                 -> Color(0xFFEF4444) // Red — very expensive
+                        }
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(14.dp))
                                 .border(
                                     width = if (isSelected) 1.5.dp else 1.dp,
-                                    brush = if (isSelected) Brush.linearGradient(listOf(ElectricPurple, Color(0xFF06B6D4)))
-                                            else Brush.linearGradient(listOf(Color.White.copy(alpha = 0.08f), Color.White.copy(alpha = 0.04f))),
+                                    brush = if (isSelected) Brush.linearGradient(listOf(SS_Violet, Color(0xFF06B6D4)))
+                                            else Brush.linearGradient(listOf(SS_Border, SS_Border)),
                                     shape = RoundedCornerShape(14.dp)
                                 )
                                 .background(
-                                    if (isSelected) ElectricPurple.copy(alpha = 0.10f)
-                                    else Color(0xFF161622)
+                                    if (isSelected) SS_Violet.copy(alpha = 0.10f)
+                                    else SS_Surface
                                 )
                                 .clickable {
                                     prefs.edit().putString("synapse_selected_model", model.key).apply()
@@ -293,12 +306,27 @@ fun SettingsScreen(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text(
                                         text       = model.displayName,
-                                        color      = Color.White,
+                                        color      = SS_Text,
                                         fontWeight = FontWeight.Bold,
                                         fontSize   = 15.sp
                                     )
+                                    // Cost factor badge — always shown next to model name
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Box(
+                                        modifier = Modifier
+                                            .background(costBadgeColor.copy(alpha = 0.15f), RoundedCornerShape(6.dp))
+                                            .border(1.dp, costBadgeColor.copy(alpha = 0.3f), RoundedCornerShape(6.dp))
+                                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                                    ) {
+                                        Text(
+                                            text = "${model.factor}×",
+                                            color = costBadgeColor,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 9.sp
+                                        )
+                                    }
                                     if (model.isRecommended) {
-                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Spacer(modifier = Modifier.width(6.dp))
                                         Box(
                                             modifier = Modifier
                                                 .background(EmeraldGreen.copy(alpha = 0.15f), RoundedCornerShape(6.dp))
@@ -315,9 +343,10 @@ fun SettingsScreen(
                                     }
                                 }
                                 Spacer(modifier = Modifier.height(4.dp))
+                                // Description + cost label on the same line
                                 Text(
-                                    text  = model.description,
-                                    color = MutedGrey.copy(alpha = 0.7f),
+                                    text  = "${model.description}  ${model.costLabel}",
+                                    color = SS_Muted.copy(alpha = 0.7f),
                                     fontSize = 12.sp
                                 )
                             }
@@ -326,8 +355,8 @@ fun SettingsScreen(
                                 modifier = Modifier
                                     .size(20.dp)
                                     .clip(CircleShape)
-                                    .background(if (isSelected) ElectricPurple else Color.Transparent)
-                                    .border(2.dp, if (isSelected) ElectricPurple else MutedGrey.copy(alpha = 0.4f), CircleShape),
+                                    .background(if (isSelected) SS_Violet else Color.Transparent)
+                                    .border(2.dp, if (isSelected) SS_Violet else SS_Muted.copy(alpha = 0.4f), CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
                                 if (isSelected) {
@@ -355,7 +384,7 @@ fun SettingsScreen(
             SettingsSection(title = "Keyboard Management") {
                 ActionSettingsRow(
                     icon        = Icons.Rounded.Settings,
-                    iconTint    = ElectricPurple,
+                    iconTint    = SS_Violet,
                     label       = "Test Keyboard",
                     description = "Open test notepad to try your keyboard",
                     onClick     = { onNavigateToKeyboardTest?.invoke() }
@@ -422,7 +451,7 @@ fun SettingsScreen(
             SettingsSection(title = "Help & Support") {
                 ActionSettingsRow(
                     icon        = Icons.Rounded.Info,
-                    iconTint    = ElectricPurple,
+                    iconTint    = SS_Violet,
                     label       = "How to Use",
                     description = "Re-open the onboarding tutorial",
                     onClick     = { /* Tutorial trigger */ }
@@ -461,19 +490,19 @@ fun SettingsScreen(
                     Icon(
                         imageVector        = Icons.Rounded.Bolt,
                         contentDescription = null,
-                        tint               = MutedGrey.copy(alpha = 0.45f),
+                        tint               = SS_Muted.copy(alpha = 0.45f),
                         modifier           = Modifier.size(13.dp)
                     )
                     Text(
                         text       = "Synapse Keyboard",
                         fontWeight = FontWeight.Bold,
-                        color      = MutedGrey.copy(alpha = 0.45f),
+                        color      = SS_Muted.copy(alpha = 0.45f),
                         fontSize   = 13.sp
                     )
                 }
                 Text(
                     text     = "Version 1.0.0 (Alpha)",
-                    color    = MutedGrey.copy(alpha = 0.30f),
+                    color    = SS_Muted.copy(alpha = 0.30f),
                     fontSize = 11.sp,
                     modifier = Modifier.padding(top = 2.dp)
                 )
@@ -489,13 +518,13 @@ fun SettingsScreen(
                 Text(
                     text       = "Sign Out?",
                     fontWeight = FontWeight.Bold,
-                    color      = Color.White
+                    color      = SS_Text
                 )
             },
             text = {
                 Text(
                     text     = "You'll need to sign in again to use Synapse AI features.",
-                    color    = MutedGrey.copy(alpha = 0.85f),
+                    color    = SS_Muted.copy(alpha = 0.85f),
                     fontSize = 14.sp
                 )
             },
@@ -518,12 +547,12 @@ fun SettingsScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showSignOutDialog = false }) {
-                    Text(text = "Cancel", color = MutedGrey)
+                    Text(text = "Cancel", color = SS_Muted)
                 }
             },
-            containerColor = DeepSlate,
+            containerColor = SS_Surface,
             shape          = RoundedCornerShape(22.dp),
-            modifier       = Modifier.border(1.dp, Color.White.copy(0.08f), RoundedCornerShape(22.dp))
+            modifier       = Modifier.border(1.dp, SS_Border, RoundedCornerShape(22.dp))
         )
     }
 
@@ -535,7 +564,7 @@ fun SettingsScreen(
                 Text(
                     text       = "Select App Theme Preset",
                     fontWeight = FontWeight.Bold,
-                    color      = Color.White
+                    color      = SS_Text
                 )
             },
             text = {
@@ -552,12 +581,12 @@ fun SettingsScreen(
                                 .border(
                                     width = if (isSelected) 1.5.dp else 1.dp,
                                     brush = if (isSelected) Brush.linearGradient(listOf(preset.primary, preset.secondary))
-                                            else Brush.linearGradient(listOf(Color.White.copy(alpha = 0.08f), Color.White.copy(alpha = 0.04f))),
+                                            else Brush.linearGradient(listOf(SS_Border, SS_Border)),
                                     shape = RoundedCornerShape(14.dp)
                                 )
                                 .background(
                                     if (isSelected) preset.primary.copy(alpha = 0.10f)
-                                    else Color(0xFF161622)
+                                    else SS_Surface
                                 )
                                 .clickable {
                                     ThemeManager.selectTheme(context, preset)
@@ -569,7 +598,7 @@ fun SettingsScreen(
                             Column {
                                 Text(
                                     text       = preset.displayName,
-                                    color      = Color.White,
+                                    color      = SS_Text,
                                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                     fontSize   = 14.sp
                                 )
@@ -609,12 +638,12 @@ fun SettingsScreen(
             },
             confirmButton = {
                 TextButton(onClick = { showThemeDialog = false }) {
-                    Text(text = "Done", color = ElectricPurple, fontWeight = FontWeight.Bold)
+                    Text(text = "Done", color = SS_Violet, fontWeight = FontWeight.Bold)
                 }
             },
-            containerColor = DeepSlate,
+            containerColor = SS_Surface,
             shape          = RoundedCornerShape(22.dp),
-            modifier       = Modifier.border(1.dp, Color.White.copy(0.08f), RoundedCornerShape(22.dp))
+            modifier       = Modifier.border(1.dp, SS_Border, RoundedCornerShape(22.dp))
         )
     }
 }
@@ -637,13 +666,13 @@ private fun SettingsSection(
                     .width(3.dp)
                     .height(11.dp)
                     .clip(RoundedCornerShape(2.dp))
-                    .background(ElectricPurple)
+                    .background(SS_Violet)
             )
             Spacer(modifier = Modifier.width(6.dp))
             Text(
                 text          = title.uppercase(),
                 style         = MaterialTheme.typography.labelSmall,
-                color         = MutedGrey.copy(alpha = 0.55f),
+                color         = SS_Muted.copy(alpha = 0.55f),
                 fontWeight    = FontWeight.Bold,
                 letterSpacing = 1.2.sp
             )
@@ -654,16 +683,14 @@ private fun SettingsSection(
                 .shadow(
                     elevation = 4.dp,
                     shape = RoundedCornerShape(22.dp),
-                    spotColor = ElectricPurple.copy(alpha = 0.16f),
-                    ambientColor = ElectricPurple.copy(alpha = 0.04f)
+                    spotColor = SS_Violet.copy(alpha = 0.16f),
+                    ambientColor = SS_Violet.copy(alpha = 0.04f)
                 )
                 .clip(RoundedCornerShape(22.dp))
-                .background(GlassmorphismColor)
+                .background(SS_Surface)
                 .border(
                     1.dp,
-                    Brush.linearGradient(
-                        listOf(Color.White.copy(0.08f), ElectricPurple.copy(0.12f), Color.White.copy(0.04f))
-                    ),
+                    SS_Border,
                     RoundedCornerShape(22.dp)
                 )
                 .padding(horizontal = 16.dp, vertical = 6.dp)
@@ -690,7 +717,7 @@ private fun ActionSettingsRow(
             .clip(RoundedCornerShape(12.dp))
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
-                indication        = androidx.compose.material.ripple.rememberRipple(color = ElectricPurple.copy(0.15f)),
+                indication        = androidx.compose.material.ripple.rememberRipple(color = SS_Violet.copy(0.15f)),
                 onClick           = onClick
             )
             .padding(vertical = 14.dp),
@@ -710,14 +737,14 @@ private fun ActionSettingsRow(
         }
         Spacer(modifier = Modifier.width(14.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(label, color = TextColor, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Text(label, color = SS_Text, fontWeight = FontWeight.Bold, fontSize = 14.sp)
             Spacer(modifier = Modifier.height(2.dp))
-            Text(description, color = MutedGrey.copy(alpha = 0.65f), fontSize = 12.sp)
+            Text(description, color = SS_Muted.copy(alpha = 0.65f), fontSize = 12.sp)
         }
         Icon(
             imageVector        = Icons.Rounded.KeyboardArrowRight,
             contentDescription = null,
-            tint               = MutedGrey.copy(alpha = 0.35f),
+            tint               = SS_Muted.copy(alpha = 0.35f),
             modifier           = Modifier.size(20.dp)
         )
     }
@@ -756,18 +783,18 @@ private fun ToggleSettingsRow(
         }
         Spacer(modifier = Modifier.width(14.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(label, color = TextColor, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Text(label, color = SS_Text, fontWeight = FontWeight.Bold, fontSize = 14.sp)
             Spacer(modifier = Modifier.height(2.dp))
-            Text(description, color = MutedGrey.copy(alpha = 0.65f), fontSize = 12.sp)
+            Text(description, color = SS_Muted.copy(alpha = 0.65f), fontSize = 12.sp)
         }
         Switch(
             checked          = checked,
             onCheckedChange  = onCheckedChange,
             colors = SwitchDefaults.colors(
                 checkedThumbColor    = Color.White,
-                checkedTrackColor    = ElectricPurple,
-                uncheckedThumbColor  = MutedGrey,
-                uncheckedTrackColor  = MutedGrey.copy(alpha = 0.18f)
+                checkedTrackColor    = SS_Violet,
+                uncheckedThumbColor  = SS_Muted,
+                uncheckedTrackColor  = SS_Muted.copy(alpha = 0.18f)
             )
         )
     }
@@ -782,6 +809,6 @@ private fun SettingsDivider() {
         modifier = Modifier
             .fillMaxWidth()
             .height(1.dp)
-            .background(MutedGrey.copy(alpha = 0.06f))
+            .background(SS_Muted.copy(alpha = 0.06f))
     )
 }

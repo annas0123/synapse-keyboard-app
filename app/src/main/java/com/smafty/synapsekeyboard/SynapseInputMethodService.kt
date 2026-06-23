@@ -34,6 +34,7 @@ import com.smafty.synapsekeyboard.auth.SupabaseClientProvider
 import io.github.jan.supabase.auth.auth
 import com.smafty.synapsekeyboard.editor.TextEditorCore
 import com.smafty.synapsekeyboard.engine.OnDemandAiExecutionEngine
+
 import com.smafty.synapsekeyboard.ui.keyboard.AiOutputState
 import com.smafty.synapsekeyboard.ui.keyboard.KeySoundEngine
 import com.smafty.synapsekeyboard.ui.keyboard.HapticEngine
@@ -130,6 +131,9 @@ class SynapseInputMethodService :
     private val textEditorCore = TextEditorCore()
     private val httpClient by lazy { OkHttpClient() }
 
+    // Main-thread handler — used to bounce OCR results back to the UI thread.
+
+
     // Vibrator for key-tap haptic feedback (HapticEngine). Resolved lazily so
     // the IME doesn't touch the system service until the first vibrate() call.
     // Uses VibratorManager on API 31+ (VIBRATOR_SERVICE is deprecated there).
@@ -171,12 +175,8 @@ class SynapseInputMethodService :
                 kbState.keyHeightScale = sharedPreferences.getFloat("keyboard_height_scale", 1.0f)
             }
             "keyboard_theme" -> {
-                val themeStr = sharedPreferences.getString("keyboard_theme", KeyboardTheme.DARK_ELEGANCE.name)
-                kbState.activeTheme = try {
-                    KeyboardTheme.valueOf(themeStr ?: KeyboardTheme.DARK_ELEGANCE.name)
-                } catch (e: Exception) {
-                    KeyboardTheme.DARK_ELEGANCE
-                }
+                val themeStr = sharedPreferences.getString("keyboard_theme", KeyboardTheme.PREMIUM_BLACK.name)
+                kbState.activeTheme = KeyboardTheme.fromPrefs(themeStr)
             }
             "synapse_visible_tools" -> {
                 kbState.visibleTools = loadVisibleTools(sharedPreferences)
@@ -426,12 +426,8 @@ class SynapseInputMethodService :
         val prefs = getSharedPreferences("synapse_prefs", Context.MODE_PRIVATE)
         kbState.keyHeightScale = prefs.getFloat("keyboard_height_scale", 1.0f)
 
-        val themeStr = prefs.getString("keyboard_theme", KeyboardTheme.DARK_ELEGANCE.name)
-        kbState.activeTheme = try {
-            KeyboardTheme.valueOf(themeStr ?: KeyboardTheme.DARK_ELEGANCE.name)
-        } catch (e: Exception) {
-            KeyboardTheme.DARK_ELEGANCE
-        }
+        val themeStr = prefs.getString("keyboard_theme", KeyboardTheme.PREMIUM_BLACK.name)
+        kbState.activeTheme = KeyboardTheme.fromPrefs(themeStr)
 
         // Load persisted visible tools (Phase 1 §3)
         kbState.visibleTools = loadVisibleTools(prefs)
@@ -538,7 +534,7 @@ class SynapseInputMethodService :
     // Build the keyboard view (called once by the system)
     // -----------------------------------------------------------------------
     override fun onCreateInputView(): View {
-        return ComposeView(this).apply {
+        val view = ComposeView(this).apply {
             setParentCompositionContext(serviceRecomposer)
             setViewTreeLifecycleOwner(this@SynapseInputMethodService)
             setViewTreeSavedStateRegistryOwner(this@SynapseInputMethodService)
@@ -569,7 +565,11 @@ class SynapseInputMethodService :
                 }
             }
         }
+
+        return view
     }
+
+
 
 
     // -----------------------------------------------------------------------
@@ -700,10 +700,11 @@ class SynapseInputMethodService :
         }
 
         // Gate 2: Overflow abuse protection — estimate cost before sending
-        // Formula: chars ÷ 4 = approx prompt tokens → × 0.75 = word-energy
-        // Add 150 output buffer (conservative estimate for typical keyboard AI output)
-        val estimatedInputEnergy = (textToProcess.length / 4f * 0.75f).toInt().coerceAtLeast(1)
-        val estimatedTotalCost   = estimatedInputEnergy + 150
+        // Formula: chars ÷ 4 = approx prompt tokens → × 0.75 × factor = model-weighted energy
+        // Add 150 × factor output buffer (conservative estimate for typical keyboard AI output)
+        val modelFactor = kbState.selectedModel.factor
+        val estimatedInputEnergy = (textToProcess.length / 4f * 0.75f * modelFactor).toInt().coerceAtLeast(1)
+        val estimatedTotalCost   = estimatedInputEnergy + (150 * modelFactor).toInt()
 
         if (estimatedTotalCost > remaining) {
             Toast.makeText(
@@ -782,14 +783,15 @@ class SynapseInputMethodService :
         //
         // Formula:
         //   remaining energy         = R credits
-        //   estimated input energy   = (text chars ÷ 4 tokens) × 0.75  [approx]
+        //   estimated input energy   = (text chars ÷ 4 tokens) × 0.75 × factor [approx]
         //   budget for output energy = R - inputEstimate  (floor 0)
-        //   max output tokens        = outputBudget ÷ 0.75
-        //   hard cap                 = 1024 tokens (enough for any keyboard use case)
+        //   max output tokens        = outputBudget ÷ (0.75 × factor)
+        //   hard cap                 = 8192 tokens (enough for full documents)
+        val modelFactor          = activeModel.factor
         val remainingEnergy     = EnergyQuotaRepository.energyRemaining.value
-        val estimatedInputEnergy = ((text.length + prompt.length) / 4f * 0.75f).toInt().coerceAtLeast(1)
+        val estimatedInputEnergy = ((text.length + prompt.length) / 4f * 0.75f * modelFactor).toInt().coerceAtLeast(1)
         val outputEnergyBudget  = (remainingEnergy - estimatedInputEnergy).coerceAtLeast(10)
-        val maxOutputTokens     = (outputEnergyBudget / 0.75f).toInt().coerceIn(10, 1024)
+        val maxOutputTokens     = (outputEnergyBudget / (0.75f * modelFactor)).toInt().coerceIn(10, 8192)
 
         return try {
             callOpenRouter(text, prompt, primaryModel, maxOutputTokens)
@@ -814,7 +816,7 @@ class SynapseInputMethodService :
         text: String,
         prompt: String,
         model: String,
-        maxTokens: Int = 1024
+        maxTokens: Int = 8192
     ): Pair<String, Pair<Int, Int>> {
         val apiKey = BuildConfig.OPENROUTER_API_KEY
         if (apiKey.isBlank()) {
@@ -865,12 +867,14 @@ class SynapseInputMethodService :
 
             val bodyJson = JSONObject(body)
 
-            // ── Token-accurate word consumption (Blueprint 26 §C-7) ─────────
+            // ── Token-accurate energy consumption (Blueprint 26 §C-7) ────────
+            // Energy = tokens × 0.75 × model factor (expensive models burn more)
+            val activeModelFactor = kbState.selectedModel.factor
             val usage         = bodyJson.optJSONObject("usage")
             val promptTokens  = usage?.optInt("prompt_tokens") ?: 0
             val outputTokens  = usage?.optInt("completion_tokens") ?: 0
-            val inputWords    = (promptTokens  * 0.75f).roundToInt()
-            val outputWords   = (outputTokens  * 0.75f).roundToInt()
+            val inputWords    = (promptTokens  * 0.75f * activeModelFactor).roundToInt()
+            val outputWords   = (outputTokens  * 0.75f * activeModelFactor).roundToInt()
 
             val choices = bodyJson.optJSONArray("choices")
                 ?: throw IOException("Invalid API response format")
@@ -954,6 +958,8 @@ class SynapseInputMethodService :
         ic.commitText(text, 1)
         ic.endBatchEdit()
     }
+
+
 
     // -----------------------------------------------------------------------
     // Open app settings / keyboard settings

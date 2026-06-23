@@ -105,7 +105,7 @@ private val SYM2_ROW_3 = listOf("%","©","®","™","✓","[","]")
 // ---------------------------------------------------------------------------
 // Theme CompositionLocal definition
 // ---------------------------------------------------------------------------
-val LocalKeyboardTheme = staticCompositionLocalOf { KeyboardTheme.DARK_ELEGANCE }
+val LocalKeyboardTheme = staticCompositionLocalOf { KeyboardTheme.PREMIUM_BLACK }
 
 
 // ---------------------------------------------------------------------------
@@ -164,7 +164,7 @@ fun SynapseKeyboardView(
                             state = state,
                             isLoading = aiState == AiOutputState.LOADING,
                             onSettingsClick = onSettingsClick,
-                            onCancelAi = onCancelAi,
+                            onCancelAi = onCancelAi
                         )
                     }
                 }
@@ -231,6 +231,7 @@ fun SynapseKeyboardView(
                         onSaveKeyScale(scale)
                     }
                 )
+
             }
 
             Spacer(modifier = Modifier.height(6.dp))
@@ -246,7 +247,7 @@ private fun AiToolbar(
     state: KeyboardUiState,
     isLoading: Boolean,
     onSettingsClick: () -> Unit,
-    onCancelAi: () -> Unit,
+    onCancelAi: () -> Unit
 ) {
     val theme = LocalKeyboardTheme.current
     // Gold accent for the AI logo ring (works across all themes)
@@ -267,7 +268,7 @@ private fun AiToolbar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(44.dp)
+            .height(48.dp)                          // 48dp — minimum touch target per spec
             .background(theme.toolbarBg)
             .padding(horizontal = 10.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -276,7 +277,7 @@ private fun AiToolbar(
         val isAiActive = state.mode == KeyboardMode.AI_PROMPTS
         Box(
             modifier = Modifier
-                .size(30.dp)
+                .size(36.dp)                        // 36dp tap target
                 .clip(RoundedCornerShape(7.dp))
                 .background(
                     if (isAiActive) theme.accentGradientStart.copy(alpha = 0.20f)
@@ -296,7 +297,7 @@ private fun AiToolbar(
                 painter = painterResource(id = R.drawable.ic_synapse),
                 contentDescription = "AI Prompt Presets",
                 tint = if (isAiActive) theme.accentGradientStart else theme.keyText,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(28.dp)     // 28dp icon — larger per spec
             )
         }
 
@@ -462,6 +463,7 @@ private fun AiToolbar(
                                         else state.switchToSizePanel()
                                     }
                                 )
+
                             }
                         }
                     }
@@ -474,7 +476,7 @@ private fun AiToolbar(
         // ── FAR RIGHT: Grid / Tool Manager button ────────────────────────────
         Box(
             modifier = Modifier
-                .size(30.dp)
+                .size(36.dp)                        // 36dp tap target
                 .clip(RoundedCornerShape(7.dp))
                 .background(
                     if (state.mode == KeyboardMode.TOOL_MANAGER)
@@ -584,7 +586,7 @@ private fun AcceptRejectToolbar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(44.dp)
+            .height(48.dp)                          // 48dp — matches toolbar height
             .background(theme.toolbarBg)
             .padding(horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -937,13 +939,12 @@ private fun EmojiLayout(
             )
 
             // Space bar
-            Box(
-                modifier = Modifier
-                    .weight(4.5f)
-                    .height(40.dp)
-                    .keyStyle(theme, false)
-                    .pointerInput(Unit) { detectTapGestures(onTap = { onEmojiClick(" ") }) },
-                contentAlignment = Alignment.Center
+            BottomRowKey(
+                weight = 4.5f,
+                height = 40.dp,
+                theme = theme,
+                onClick = { onEmojiClick(" ") },
+                isDarkKey = false
             ) {
                 Text("English", color = theme.keyTextMuted, fontSize = 12.sp)
             }
@@ -985,31 +986,23 @@ private fun BottomRow(
         )
 
         // Comma key
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .height(height)
-                .pointerInput(Unit) { detectTapGestures(onTap = { onChar(",") }) }
-                .padding(horizontal = KeyHorizontalPadding)
-                .keyStyle(theme, true),
-            contentAlignment = Alignment.Center
+        BottomRowKey(
+            weight = 1f,
+            height = height,
+            theme = theme,
+            onClick = { onChar(",") },
+            isDarkKey = true
         ) {
             Text(",", color = theme.keyTextMuted, fontSize = 16.sp)
         }
 
-        // Emoji toggle (language cycle removed — English-only keyboard)
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .height(height)
-                .clickable(
-                    indication = null,
-                    interactionSource = remember { MutableInteractionSource() },
-                    onClick = onEmojiToggle
-                )
-                .padding(horizontal = KeyHorizontalPadding)
-                .keyStyle(theme, true),
-            contentAlignment = Alignment.Center
+        // Emoji toggle
+        BottomRowKey(
+            weight = 1f,
+            height = height,
+            theme = theme,
+            onClick = onEmojiToggle,
+            isDarkKey = true
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_emoji),
@@ -1019,63 +1012,102 @@ private fun BottomRow(
             )
         }
 
-        // Space bar — shows active language name
-        Box(
-            modifier = Modifier
-                .weight(4f)
-                .height(height)
-                .pointerInput(Unit) { detectTapGestures(onTap = { onSpace() }) }
-                .padding(horizontal = KeyHorizontalPadding)
-                .keyStyle(theme, false),
-            contentAlignment = Alignment.Center
+        // Space bar
+        BottomRowKey(
+            weight = 4f,
+            height = height,
+            theme = theme,
+            onClick = onSpace,
+            isDarkKey = false
         ) {
             Text(state.activeLanguage, color = theme.keyTextMuted, fontSize = 12.sp)
         }
 
         // Period key
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .height(height)
-                .pointerInput(Unit) { detectTapGestures(onTap = { onChar(".") }) }
-                .padding(horizontal = KeyHorizontalPadding)
-                .keyStyle(theme, true),
-            contentAlignment = Alignment.Center
+        BottomRowKey(
+            weight = 1f,
+            height = height,
+            theme = theme,
+            onClick = { onChar(".") },
+            isDarkKey = true
         ) {
             Text(".", color = theme.keyTextMuted, fontSize = 16.sp)
         }
 
         // Return / Enter key
-        val returnBrush = Brush.linearGradient(
-            listOf(theme.accentGradientStart.copy(0.85f), theme.accentGradientEnd.copy(0.85f))
-        )
-        Box(
-            modifier = Modifier
-                .weight(1.5f)
-                .height(height)
-                .pointerInput(Unit) { detectTapGestures(onTap = { onReturn() }) }
-                .padding(horizontal = KeyHorizontalPadding)
-                .clip(KeyShape)
-                .then(
-                    if (theme.hasBorder) Modifier.border(1.dp, theme.borderColor, KeyShape) else Modifier
-                )
-                .background(returnBrush),
-            contentAlignment = Alignment.Center
+        BottomRowKey(
+            weight = 1.5f,
+            height = height,
+            theme = theme,
+            onClick = onReturn,
+            customBg = theme.enterKeyBg
         ) {
             Icon(
                 Icons.Rounded.KeyboardReturn,
                 contentDescription = "Return",
-                tint = CrispWhite,
+                tint = Color.White,
                 modifier = Modifier.size(18.dp)
             )
         }
     }
 }
 
+@Composable
+private fun RowScope.BottomRowKey(
+    weight: Float,
+    height: Dp,
+    theme: KeyboardTheme,
+    onClick: () -> Unit,
+    isDarkKey: Boolean = true,
+    customBg: Color? = null,
+    customShape: androidx.compose.ui.graphics.Shape = KeyShape,
+    content: @Composable BoxScope.() -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    val keyScale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = tween(
+            durationMillis = if (isPressed) 50 else 100,
+            easing = androidx.compose.animation.core.FastOutSlowInEasing
+        ),
+        label = "brScale"
+    )
+    val baseBg = customBg ?: if (isDarkKey) theme.keyFaceDark else theme.keyFaceDefault
+    val pressedBg by animateColorAsState(
+        targetValue = if (isPressed) theme.keyFacePressed else Color.Transparent,
+        animationSpec = tween(40),
+        label = "brBg"
+    )
+
+    Box(
+        modifier = Modifier
+            .weight(weight)
+            .height(height)
+            .graphicsLayer { scaleX = keyScale; scaleY = keyScale }
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            )
+            .padding(horizontal = KeyHorizontalPadding)
+            .clip(customShape)
+            .then(
+                if (theme.hasBorder) Modifier.border(0.5.dp, theme.borderColor, customShape) else Modifier
+            )
+            .background(baseBg)
+            .background(pressedBg),
+        contentAlignment = Alignment.Center,
+        content = content
+    )
+}
+
 // ---------------------------------------------------------------------------
 // Reusable key primitives
 // ---------------------------------------------------------------------------
-private val KeyShape = RoundedCornerShape(7.dp)
+// Key shape: 2dp corner radius — nearly rectangular per Premium Minimal spec
+private val KeyShape = RoundedCornerShape(2.dp)
 private val KeyHorizontalPadding = 2.5.dp
 private val KeyTouchSlop = 10.dp
 private const val KEY_PREVIEW_MIN_VISIBLE_MS = 70L
@@ -1085,23 +1117,15 @@ private const val KEY_PREVIEW_MIN_VISIBLE_MS = 70L
 // ---------------------------------------------------------------------------
 @Composable
 private fun KeyPreviewCard(label: String, theme: KeyboardTheme) {
-    val previewShape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp, bottomEnd = 4.dp, bottomStart = 4.dp)
+    val previewShape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomEnd = 2.dp, bottomStart = 2.dp)
     Box(
         modifier = Modifier
             .defaultMinSize(minWidth = 46.dp, minHeight = 54.dp)
             .clip(previewShape)
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        theme.keyFaceDefault.copy(alpha = 1f),
-                        theme.keyFaceDark.copy(alpha = 0.97f)
-                    )
-                )
-            )
+            .background(theme.keyFaceDefault)       // Solid — no gradient per spec
             .border(
-                1.dp,
-                if (theme.hasBorder) theme.borderColor.copy(alpha = 0.9f)
-                else Color.White.copy(alpha = 0.22f),
+                0.5.dp,
+                theme.borderColor,
                 previewShape
             )
             .padding(horizontal = 14.dp, vertical = 10.dp),
@@ -1110,7 +1134,7 @@ private fun KeyPreviewCard(label: String, theme: KeyboardTheme) {
         Text(
             text = label,
             color = theme.keyText,
-            fontSize = 28.sp,
+            fontSize = 24.sp,                       // 24sp per spec
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
         )
@@ -1124,7 +1148,7 @@ private fun Modifier.keyStyle(theme: KeyboardTheme, isDarkKey: Boolean): Modifie
         .clip(KeyShape)
         .then(
             if (theme.hasBorder) {
-                Modifier.border(1.dp, theme.borderColor, KeyShape)
+                Modifier.border(0.5.dp, theme.borderColor, KeyShape) // 0.5dp — subtle per spec
             } else {
                 Modifier
             }
@@ -1164,12 +1188,15 @@ private fun RowScope.CharKey(
     var previewToken by remember { mutableStateOf(0) }
 
     val keyScale by animateFloatAsState(
-        targetValue = if (isPressed) 0.92f else 1f,
-        animationSpec = spring(stiffness = Spring.StiffnessMedium, dampingRatio = Spring.DampingRatioNoBouncy),
+        targetValue = if (isPressed) 0.95f else 1f,  // 0.95 per spec
+        animationSpec = tween(
+            durationMillis = if (isPressed) 50 else 100,
+            easing = androidx.compose.animation.core.FastOutSlowInEasing
+        ),
         label = "keyScale"
     )
     val pressedBg by animateColorAsState(
-        targetValue = if (isPressed) theme.accentGradientStart.copy(alpha = 0.20f) else Color.Transparent,
+        targetValue = if (isPressed) theme.keyFacePressed else Color.Transparent,  // Use keyFacePressed token
         animationSpec = tween(40),
         label = "keyBg"
     )
@@ -1289,12 +1316,15 @@ private fun RowScope.CharKeyWithHint(
     var previewToken by remember { mutableStateOf(0) }
 
     val keyScale by animateFloatAsState(
-        targetValue = if (isPressed) 0.92f else 1f,
-        animationSpec = spring(stiffness = Spring.StiffnessMedium, dampingRatio = Spring.DampingRatioNoBouncy),
+        targetValue = if (isPressed) 0.95f else 1f,  // 0.95 per spec
+        animationSpec = tween(
+            durationMillis = if (isPressed) 50 else 100,
+            easing = androidx.compose.animation.core.FastOutSlowInEasing
+        ),
         label = "keyHintScale"
     )
     val pressedBg by animateColorAsState(
-        targetValue = if (isPressed) theme.accentGradientStart.copy(alpha = 0.20f) else Color.Transparent,
+        targetValue = if (isPressed) theme.keyFacePressed else Color.Transparent,
         animationSpec = tween(40),
         label = "keyHintBg"
     )
@@ -1422,29 +1452,48 @@ private fun RowScope.ShiftKey(
     onPress: () -> Unit,
 ) {
     val theme = LocalKeyboardTheme.current
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    val keyScale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = tween(
+            durationMillis = if (isPressed) 50 else 100,
+            easing = androidx.compose.animation.core.FastOutSlowInEasing
+        ),
+        label = "shiftScale"
+    )
+
     val tint = when {
         isCapsLock -> theme.accentGradientEnd
         isActive   -> theme.accentGradientStart
         else       -> theme.keyTextMuted
     }
-    val activeBg by animateColorAsState(
-        targetValue = when {
-            isCapsLock -> theme.accentGradientEnd.copy(alpha = 0.20f)
-            isActive   -> theme.accentGradientStart.copy(alpha = 0.15f)
-            else       -> Color.Transparent
-        },
-        animationSpec = tween(150),
-        label = "shiftBg"
+    val baseBg = when {
+        isCapsLock -> theme.accentGradientEnd.copy(alpha = 0.20f)
+        isActive   -> theme.accentGradientStart.copy(alpha = 0.15f)
+        else       -> Color.Transparent
+    }
+    val pressedBg by animateColorAsState(
+        targetValue = if (isPressed) theme.keyFacePressed else Color.Transparent,
+        animationSpec = tween(40),
+        label = "shiftPressedBg"
     )
 
     Box(
         modifier = Modifier
             .weight(weight)
             .height(height)
-            .pointerInput(Unit) { detectTapGestures(onTap = { onPress() }) }
+            .graphicsLayer { scaleX = keyScale; scaleY = keyScale }
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onPress
+            )
             .padding(horizontal = KeyHorizontalPadding)
             .keyStyle(theme, true)
-            .background(activeBg),
+            .background(baseBg)
+            .background(pressedBg),
         contentAlignment = Alignment.Center
     ) {
         Icon(
@@ -1467,12 +1516,15 @@ private fun RowScope.BackspaceKey(
     var isDepressed by remember { mutableStateOf(false) }
 
     val keyScale by animateFloatAsState(
-        targetValue = if (isDepressed) 0.93f else 1f,
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        targetValue = if (isDepressed) 0.95f else 1f,
+        animationSpec = tween(
+            durationMillis = if (isDepressed) 50 else 100,
+            easing = androidx.compose.animation.core.FastOutSlowInEasing
+        ),
         label = "bsScale"
     )
     val pressedBg by animateColorAsState(
-        targetValue = if (isDepressed) theme.keyTextMuted.copy(alpha = 0.15f) else Color.Transparent,
+        targetValue = if (isDepressed) theme.keyFacePressed else Color.Transparent,
         animationSpec = tween(60),
         label = "bsBg"
     )
@@ -1527,12 +1579,15 @@ private fun RowScope.FuncKey(
     val isPressed by interactionSource.collectIsPressedAsState()
 
     val keyScale by animateFloatAsState(
-        targetValue = if (isPressed) 0.93f else 1f,
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = tween(
+            durationMillis = if (isPressed) 50 else 100,
+            easing = androidx.compose.animation.core.FastOutSlowInEasing
+        ),
         label = "funcScale"
     )
     val pressedBg by animateColorAsState(
-        targetValue = if (isPressed) theme.keyTextMuted.copy(alpha = 0.12f) else Color.Transparent,
+        targetValue = if (isPressed) theme.keyFacePressed else Color.Transparent,
         animationSpec = tween(60),
         label = "funcBg"
     )
@@ -1566,7 +1621,7 @@ private fun RowScope.FuncKey(
 // Reusable Panel Components
 // ---------------------------------------------------------------------------
 @Composable
-private fun PanelHeader(
+fun PanelHeader(
     title: String,
     actions: @Composable (RowScope.() -> Unit)? = null
 ) {
@@ -2268,6 +2323,7 @@ private fun ToolManagerPanel(
         ToolEntry(TOOL_AI_PROMPTS,     "AI Prompts",    Icons.Rounded.AutoAwesome),
         ToolEntry(TOOL_THEME_SWITCHER, "Themes",        Icons.Rounded.Palette),
         ToolEntry(TOOL_SIZE_PANEL,     "Keyboard Size", Icons.Rounded.AspectRatio),
+
     )
 
     Column(

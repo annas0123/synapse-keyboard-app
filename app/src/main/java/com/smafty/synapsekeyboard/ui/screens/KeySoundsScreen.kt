@@ -57,12 +57,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.smafty.synapsekeyboard.ui.keyboard.KeySoundEngine
 import com.smafty.synapsekeyboard.ui.keyboard.KeySoundPreset
-import com.smafty.synapsekeyboard.ui.theme.DeepSlate
-import com.smafty.synapsekeyboard.ui.theme.ElectricPurple
-import com.smafty.synapsekeyboard.ui.theme.EmeraldGreen
-import com.smafty.synapsekeyboard.ui.theme.GlassmorphismColor
-import com.smafty.synapsekeyboard.ui.theme.MutedGrey
-import com.smafty.synapsekeyboard.ui.theme.TextColor
+
+// ── Premium Minimal design tokens ────────────────────────────────────────────
+private val KS_Bg      = Color(0xFF0A0A0F)
+private val KS_Surface = Color(0xFF141420)
+private val KS_Border  = Color(0xFF2A2A3A)
+private val KS_Violet  = Color(0xFF7C5CFC)
+private val KS_Text    = Color(0xFFF0F0F5)
+private val KS_Muted   = Color(0xFF8888A0)
 
 // ---------------------------------------------------------------------------
 // Key Sounds Configuration Screen — Premium redesign
@@ -83,12 +85,12 @@ fun KeySoundsScreen(onBack: () -> Unit) {
     var visible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { visible = true }
 
-    val cyanAccent = Color(0xFF06B6D4)
+    val cyanAccent = KS_Violet   // unified violet accent
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(DeepSlate)
+            .background(KS_Bg)
             .statusBarsPadding()
             .padding(horizontal = 20.dp)
             .verticalScroll(rememberScrollState())
@@ -106,10 +108,9 @@ fun KeySoundsScreen(onBack: () -> Unit) {
             ) {
                 Box(
                     modifier = Modifier
-                        .size(42.dp)
-                        .shadow(4.dp, RoundedCornerShape(13.dp), spotColor = ElectricPurple.copy(0.3f))
-                        .clip(RoundedCornerShape(13.dp))
-                        .background(GlassmorphismColor)
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(KS_Surface)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication        = null,
@@ -120,32 +121,22 @@ fun KeySoundsScreen(onBack: () -> Unit) {
                     Icon(
                         imageVector        = Icons.Rounded.ArrowBack,
                         contentDescription = "Back",
-                        tint               = TextColor,
+                        tint               = KS_Text,
                         modifier           = Modifier.size(20.dp)
                     )
                 }
                 Spacer(modifier = Modifier.width(16.dp))
                 Column {
-                    Box(
-                        modifier = Modifier
-                            .width(28.dp)
-                            .height(3.dp)
-                            .clip(RoundedCornerShape(2.dp))
-                            .background(
-                                Brush.horizontalGradient(listOf(cyanAccent, cyanAccent.copy(0f)))
-                            )
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text       = "Key Sounds",
-                        style      = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.ExtraBold,
-                        color      = TextColor
+                        fontSize   = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        color      = KS_Text
                     )
                     Text(
                         text  = "Choose your click experience",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MutedGrey.copy(alpha = 0.70f)
+                        fontSize = 13.sp,
+                        color = KS_Muted
                     )
                 }
             }
@@ -161,18 +152,9 @@ fun KeySoundsScreen(onBack: () -> Unit) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .shadow(6.dp, RoundedCornerShape(22.dp), spotColor = cyanAccent.copy(0.25f))
-                    .clip(RoundedCornerShape(22.dp))
-                    .background(
-                        Brush.linearGradient(
-                            listOf(
-                                cyanAccent.copy(alpha = if (soundEnabled) 0.14f else 0.04f),
-                                ElectricPurple.copy(alpha = if (soundEnabled) 0.08f else 0.02f)
-                            )
-                        )
-                    )
-                    .background(GlassmorphismColor)
-                    .padding(horizontal = 18.dp, vertical = 18.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(KS_Surface)
+                    .padding(horizontal = 16.dp, vertical = 14.dp)
             ) {
                 Row(
                     modifier          = Modifier.fillMaxWidth(),
@@ -180,18 +162,18 @@ fun KeySoundsScreen(onBack: () -> Unit) {
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(48.dp)
-                            .clip(RoundedCornerShape(14.dp))
+                            .size(44.dp)
+                            .clip(RoundedCornerShape(11.dp))
                             .background(
-                                if (soundEnabled) cyanAccent.copy(alpha = 0.18f)
-                                else MutedGrey.copy(alpha = 0.08f)
+                                if (soundEnabled) cyanAccent.copy(alpha = 0.15f)
+                                else KS_Border
                             ),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector        = if (soundEnabled) Icons.Rounded.VolumeUp else Icons.Rounded.VolumeOff,
                             contentDescription = null,
-                            tint               = if (soundEnabled) cyanAccent else MutedGrey,
+                            tint               = if (soundEnabled) cyanAccent else KS_Muted,
                             modifier           = Modifier.size(24.dp)
                         )
                     }
@@ -199,14 +181,14 @@ fun KeySoundsScreen(onBack: () -> Unit) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text       = "Key Sounds",
-                            color      = TextColor,
+                            color      = KS_Text,
                             fontWeight = FontWeight.Bold,
                             fontSize   = 15.sp
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text  = if (soundEnabled) "Active: ${selectedPreset.displayName}" else "Tap to enable sounds",
-                            color = if (soundEnabled) cyanAccent else MutedGrey.copy(alpha = 0.55f),
+                            color = if (soundEnabled) cyanAccent else KS_Muted,
                             fontSize = 12.sp
                         )
                     }
@@ -220,8 +202,8 @@ fun KeySoundsScreen(onBack: () -> Unit) {
                         colors = SwitchDefaults.colors(
                             checkedThumbColor    = Color.White,
                             checkedTrackColor    = cyanAccent,
-                            uncheckedThumbColor  = MutedGrey,
-                            uncheckedTrackColor  = MutedGrey.copy(alpha = 0.18f)
+                            uncheckedThumbColor  = KS_Muted,
+                            uncheckedTrackColor  = KS_Border
                         )
                     )
                 }
@@ -249,9 +231,9 @@ fun KeySoundsScreen(onBack: () -> Unit) {
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     text          = "SOUND PRESETS",
-                    style         = MaterialTheme.typography.labelSmall,
-                    color         = MutedGrey.copy(alpha = 0.55f),
-                    fontWeight    = FontWeight.Bold,
+                    fontSize      = 12.sp,
+                    color         = KS_Muted,
+                    fontWeight    = FontWeight.SemiBold,
                     letterSpacing = 1.2.sp
                 )
             }
@@ -296,23 +278,13 @@ private fun SoundPresetCard(
     onSelect: () -> Unit,
     onPreview: () -> Unit
 ) {
-    val stripColor = if (isSelected) accentColor else MutedGrey.copy(alpha = 0.25f)
-    val elevDp     by animateDpAsState(
-        targetValue  = if (isSelected) 5.dp else 2.dp,
-        animationSpec = spring(stiffness = Spring.StiffnessMedium),
-        label        = "elev"
-    )
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(elevDp, RoundedCornerShape(18.dp), spotColor = accentColor.copy(if (isSelected) 0.3f else 0f))
-            .clip(RoundedCornerShape(18.dp))
+            .clip(RoundedCornerShape(12.dp))
             .background(
-                if (isSelected)
-                    Brush.linearGradient(listOf(accentColor.copy(0.10f), accentColor.copy(0.03f)))
-                else
-                    Brush.linearGradient(listOf(GlassmorphismColor, GlassmorphismColor))
+                if (isSelected) accentColor.copy(0.10f)
+                else KS_Surface
             )
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
@@ -321,14 +293,12 @@ private fun SoundPresetCard(
             ),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Left accent strip
+        // Left accent strip (4dp)
         Box(
             modifier = Modifier
                 .width(4.dp)
                 .height(60.dp)
-                .background(
-                    Brush.verticalGradient(listOf(stripColor, stripColor.copy(alpha = 0.25f)))
-                )
+                .background(if (isSelected) accentColor else KS_Border)
         )
         Spacer(modifier = Modifier.width(14.dp))
 
@@ -339,7 +309,7 @@ private fun SoundPresetCard(
                 .clip(CircleShape)
                 .background(
                     if (isSelected) accentColor.copy(alpha = 0.16f)
-                    else MutedGrey.copy(alpha = 0.07f)
+                    else KS_Muted.copy(alpha = 0.07f)
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -354,7 +324,7 @@ private fun SoundPresetCard(
                 Icon(
                     imageVector        = Icons.Rounded.MusicNote,
                     contentDescription = null,
-                    tint               = MutedGrey.copy(alpha = 0.45f),
+                    tint               = KS_Muted.copy(alpha = 0.45f),
                     modifier           = Modifier.size(18.dp)
                 )
             }
@@ -364,14 +334,14 @@ private fun SoundPresetCard(
         Column(modifier = Modifier.weight(1f).padding(vertical = 14.dp)) {
             Text(
                 text       = preset.displayName,
-                color      = if (isSelected) accentColor else TextColor,
+                color      = if (isSelected) accentColor else KS_Text,
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                 fontSize   = 14.sp
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text     = preset.description,
-                color    = MutedGrey.copy(alpha = 0.65f),
+                color    = KS_Muted,
                 fontSize = 11.sp
             )
         }
@@ -383,7 +353,7 @@ private fun SoundPresetCard(
                 .clip(CircleShape)
                 .background(
                     if (isSelected) accentColor.copy(alpha = 0.20f)
-                    else MutedGrey.copy(alpha = 0.07f)
+                    else KS_Muted.copy(alpha = 0.07f)
                 )
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
@@ -395,7 +365,7 @@ private fun SoundPresetCard(
             Icon(
                 imageVector        = Icons.Rounded.PlayArrow,
                 contentDescription = "Preview ${preset.displayName}",
-                tint               = if (isSelected) accentColor else MutedGrey.copy(alpha = 0.5f),
+                tint               = if (isSelected) accentColor else KS_Muted.copy(alpha = 0.5f),
                 modifier           = Modifier.size(18.dp)
             )
         }

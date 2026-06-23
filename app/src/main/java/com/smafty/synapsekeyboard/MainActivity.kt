@@ -16,6 +16,11 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.tween
 import com.smafty.synapsekeyboard.auth.AuthManager
 import com.smafty.synapsekeyboard.ui.screens.KeyboardTestScreen
 import com.smafty.synapsekeyboard.ui.screens.LoginScreen
@@ -153,7 +158,19 @@ class MainActivity : ComponentActivity() {
                 ) {
                     NavHost(
                         navController    = navController,
-                        startDestination = startDestination
+                        startDestination = startDestination,
+                        enterTransition = {
+                            slideInHorizontally(animationSpec = tween(200)) { it } + fadeIn(animationSpec = tween(200))
+                        },
+                        exitTransition = {
+                            slideOutHorizontally(animationSpec = tween(200)) { -it } + fadeOut(animationSpec = tween(200))
+                        },
+                        popEnterTransition = {
+                            slideInHorizontally(animationSpec = tween(200)) { -it } + fadeIn(animationSpec = tween(200))
+                        },
+                        popExitTransition = {
+                            slideOutHorizontally(animationSpec = tween(200)) { it } + fadeOut(animationSpec = tween(200))
+                        }
                     ) {
                         // ── Splash ────────────────────────────────────────────
                         composable("splash") {

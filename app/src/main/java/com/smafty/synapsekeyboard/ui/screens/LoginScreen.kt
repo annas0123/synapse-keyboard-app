@@ -5,28 +5,12 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -34,30 +18,15 @@ import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.CardGiftcard
 import androidx.compose.material.icons.rounded.Lock
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -65,16 +34,24 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.smafty.synapsekeyboard.auth.AuthManager
 import com.smafty.synapsekeyboard.auth.AuthResult
-import com.smafty.synapsekeyboard.ui.theme.DeepSlate
-import com.smafty.synapsekeyboard.ui.theme.ElectricPurple
-import com.smafty.synapsekeyboard.ui.theme.EmeraldGreen
-import com.smafty.synapsekeyboard.ui.theme.GlassmorphismColor
-import com.smafty.synapsekeyboard.ui.theme.MutedGrey
 import kotlinx.coroutines.launch
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Login Screen
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Premium Minimal design tokens ─────────────────────────────────────────────
+private val LG_Bg          = Color(0xFF0A0A0F)
+private val LG_Surface     = Color(0xFF141420)
+private val LG_Border      = Color(0xFF2A2A3A)
+private val LG_Violet      = Color(0xFF7C5CFC)
+private val LG_TextPrimary = Color(0xFFF0F0F5)
+private val LG_TextSecond  = Color(0xFF8888A0)
+
+/**
+ * LoginScreen — Phase 3 redesign.
+ * - #0A0A0F background (no blobs, no blurs, no glassmorphism)
+ * - Logo: solid #141420 card with 1dp #2A2A3A border (removed glow ring)
+ * - Value props: simple icon + text rows, no glass card
+ * - Google button: White bg, dark text, 12dp radius
+ * - Backend (AuthManager) fully preserved
+ */
 @Composable
 fun LoginScreen(onLoginSuccess: () -> Unit) {
     val context      = LocalContext.current
@@ -85,76 +62,21 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
     var contentVisible by remember { mutableStateOf(false) }
 
     val logoAlpha = remember { Animatable(0f) }
-    val logoScale = remember { Animatable(0.65f) }
+    val logoScale = remember { Animatable(0.80f) }
 
     LaunchedEffect(Unit) {
         contentVisible = true
-        logoAlpha.animateTo(1f, tween(800, easing = FastOutSlowInEasing))
-        logoScale.animateTo(1f, tween(800, easing = FastOutSlowInEasing))
+        logoAlpha.animateTo(1f, tween(600, easing = FastOutSlowInEasing))
+        logoScale.animateTo(1f, tween(600, easing = FastOutSlowInEasing))
     }
 
     BackHandler { (context as? Activity)?.finish() }
 
-    // Pulsing glow animation for logo
-    val infiniteTransition = rememberInfiniteTransition(label = "logoPulse")
-    val glowPulse by infiniteTransition.animateFloat(
-        initialValue   = 0.35f,
-        targetValue    = 0.65f,
-        animationSpec  = infiniteRepeatable(tween(2200, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label          = "glowPulse"
-    )
-
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(DeepSlate)
+            .background(LG_Bg)  // Solid near-black — NO blobs, NO blur, NO mesh
     ) {
-        // ── Background: layered radial glows ─────────────────────────────────
-        // Primary purple top glow
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(480.dp)
-                .align(Alignment.TopCenter)
-                .background(
-                    Brush.radialGradient(
-                        colors = listOf(
-                            ElectricPurple.copy(alpha = 0.28f),
-                            ElectricPurple.copy(alpha = 0.05f),
-                            Color.Transparent
-                        ),
-                        center = Offset(0.5f, 0.15f),
-                        radius = 900f
-                    )
-                )
-        )
-        // Cyan accent streak
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(300.dp)
-                .align(Alignment.TopCenter)
-                .background(
-                    Brush.radialGradient(
-                        colors = listOf(Color(0xFF00D4FF).copy(alpha = 0.08f), Color.Transparent),
-                        radius = 500f
-                    )
-                )
-        )
-        // Bottom emerald reflection
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(280.dp)
-                .align(Alignment.BottomCenter)
-                .background(
-                    Brush.radialGradient(
-                        colors = listOf(EmeraldGreen.copy(alpha = 0.10f), Color.Transparent),
-                        radius = 600f
-                    )
-                )
-        )
-
         // ── Main content ──────────────────────────────────────────────────────
         Column(
             modifier = Modifier
@@ -166,54 +88,23 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
             verticalArrangement = Arrangement.Center
         ) {
 
-            // ── Logo with animated glow ring ─────────────────────────────────
+            // ── Logo — solid card, no glow ────────────────────────────────────
             Box(
                 modifier = Modifier
-                    .size(112.dp)
+                    .size(88.dp)
                     .alpha(logoAlpha.value)
-                    .scale(logoScale.value),
+                    .scale(logoScale.value)
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(LG_Surface)
+                    .border(1.dp, LG_Border, RoundedCornerShape(24.dp)),
                 contentAlignment = Alignment.Center
             ) {
-                // Pulsing outer glow ring
-                Box(
-                    modifier = Modifier
-                        .size(112.dp)
-                        .clip(RoundedCornerShape(32.dp))
-                        .background(ElectricPurple.copy(alpha = glowPulse * 0.18f))
-                        .border(
-                            width = 1.5.dp,
-                            brush = Brush.linearGradient(
-                                listOf(ElectricPurple.copy(alpha = glowPulse), ElectricPurple.copy(alpha = glowPulse * 0.3f))
-                            ),
-                            shape = RoundedCornerShape(32.dp)
-                        )
+                Icon(
+                    imageVector        = Icons.Rounded.AutoAwesome,
+                    contentDescription = "Synapse AI",
+                    tint               = LG_Violet,
+                    modifier           = Modifier.size(40.dp)
                 )
-                // Inner icon box
-                Box(
-                    modifier = Modifier
-                        .size(88.dp)
-                        .clip(RoundedCornerShape(26.dp))
-                        .background(
-                            Brush.radialGradient(
-                                listOf(ElectricPurple.copy(alpha = 0.55f), Color(0xFF1A0A3C))
-                            )
-                        )
-                        .border(
-                            width = 1.dp,
-                            brush = Brush.linearGradient(
-                                listOf(ElectricPurple.copy(alpha = 0.90f), ElectricPurple.copy(alpha = 0.25f))
-                            ),
-                            shape = RoundedCornerShape(26.dp)
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector        = Icons.Rounded.AutoAwesome,
-                        contentDescription = "Synapse AI",
-                        tint               = Color.White,
-                        modifier           = Modifier.size(42.dp)
-                    )
-                }
             }
 
             Spacer(modifier = Modifier.height(28.dp))
@@ -221,64 +112,53 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
             // ── Brand wordmark ────────────────────────────────────────────────
             AnimatedVisibility(
                 visible = contentVisible,
-                enter   = fadeIn(tween(600, 200)) + slideInVertically(tween(600, 200)) { 28 }
+                enter   = fadeIn(tween(500, 150)) + slideInVertically(tween(500, 150)) { 20 }
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "Synapse",
-                        style      = MaterialTheme.typography.displaySmall,
-                        fontWeight = FontWeight.ExtraBold,
-                        color      = Color.White,
-                        letterSpacing = 1.5.sp
+                        text          = "Synapse",
+                        fontSize      = 28.sp,
+                        fontWeight    = FontWeight.Bold,
+                        color         = LG_TextPrimary,
+                        letterSpacing = 0.5.sp
                     )
-                    Spacer(Modifier.height(2.dp))
-                    // Gradient subtitle
+                    Spacer(Modifier.height(4.dp))
                     Text(
-                        text = "AI · Keyboard",
-                        style      = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Medium,
-                        color      = ElectricPurple.copy(alpha = 0.90f),
-                        letterSpacing = 4.sp
+                        text          = "AI  ·  KEYBOARD",
+                        fontSize      = 12.sp,
+                        fontWeight    = FontWeight.Medium,
+                        color         = LG_TextSecond,
+                        letterSpacing = 3.sp
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(44.dp))
 
-            // ── Value props glass card ────────────────────────────────────────
+            // ── Value props — simple rows, NO glass card ──────────────────────
             AnimatedVisibility(
                 visible = contentVisible,
-                enter   = fadeIn(tween(600, 400)) + slideInVertically(tween(600, 400)) { 28 }
+                enter   = fadeIn(tween(500, 280)) + slideInVertically(tween(500, 280)) { 20 }
             ) {
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(24.dp))
-                        .background(GlassmorphismColor)
-                        .border(
-                            1.dp,
-                            Brush.linearGradient(
-                                listOf(Color.White.copy(0.14f), ElectricPurple.copy(0.18f), Color.White.copy(0.06f))
-                            ),
-                            RoundedCornerShape(24.dp)
-                        )
-                        .padding(24.dp),
+                    modifier            = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    ValuePropRow(Icons.Rounded.Bolt,        Color(0xFFF59E0B), "AI writing assistant built into every keyboard")
-                    ValuePropDivider()
-                    ValuePropRow(Icons.Rounded.Lock,         Color(0xFF10B981), "Your data stays secure with Google Auth")
-                    ValuePropDivider()
-                    ValuePropRow(Icons.Rounded.CardGiftcard, ElectricPurple,    "Start free — 20,000 energy credits on us")
+                    ValuePropRow(Icons.Rounded.Bolt,        Color(0xFFFBBF24), "AI writing assistant built into every keyboard")
+                    // Subtle divider
+                    Box(modifier = Modifier.fillMaxWidth().height(0.5.dp).background(LG_Border))
+                    ValuePropRow(Icons.Rounded.Lock,         Color(0xFF34D399), "Your data stays secure with Google Auth")
+                    Box(modifier = Modifier.fillMaxWidth().height(0.5.dp).background(LG_Border))
+                    ValuePropRow(Icons.Rounded.CardGiftcard, LG_Violet,         "Start free — 20,000 energy credits on us")
                 }
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(44.dp))
 
             // ── Sign-In Button ────────────────────────────────────────────────
             AnimatedVisibility(
                 visible = contentVisible,
-                enter   = fadeIn(tween(600, 600)) + slideInVertically(tween(600, 600)) { 28 }
+                enter   = fadeIn(tween(500, 400)) + slideInVertically(tween(500, 400)) { 20 }
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -303,8 +183,8 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                                 }
                             }
                         },
-                        modifier = Modifier.fillMaxWidth().height(56.dp),
-                        shape    = RoundedCornerShape(18.dp),
+                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                        shape    = RoundedCornerShape(12.dp),   // 12dp per spec
                         colors   = ButtonDefaults.buttonColors(
                             containerColor = Color.White,
                             contentColor   = Color(0xFF1F1F1F)
@@ -313,26 +193,25 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                     ) {
                         if (isLoading) {
                             CircularProgressIndicator(
-                                modifier    = Modifier.size(22.dp),
-                                color       = ElectricPurple,
+                                modifier    = Modifier.size(20.dp),
+                                color       = LG_Violet,
                                 strokeWidth = 2.5.dp
                             )
                             Spacer(modifier = Modifier.width(12.dp))
-                            Text("Signing in…", fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = Color(0xFF444444))
+                            Text("Signing in…", fontWeight = FontWeight.Medium, fontSize = 15.sp, color = Color(0xFF444444))
                         } else {
                             GoogleGLogo()
                             Spacer(modifier = Modifier.width(12.dp))
-                            Text("Continue with Google", fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = Color(0xFF1F1F1F))
+                            Text("Continue with Google", fontWeight = FontWeight.Medium, fontSize = 15.sp, color = Color(0xFF1F1F1F))
                         }
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
-                        text      = "By continuing, you agree to our Terms of Service\nand Privacy Policy",
-                        style     = MaterialTheme.typography.bodySmall,
-                        color     = MutedGrey.copy(alpha = 0.45f),
-                        textAlign = TextAlign.Center,
+                        text       = "By continuing, you agree to our Terms of Service\nand Privacy Policy",
+                        color      = LG_TextSecond.copy(alpha = 0.60f),
+                        textAlign  = TextAlign.Center,
                         lineHeight = 18.sp,
                         fontSize   = 11.sp
                     )
@@ -350,87 +229,58 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
         ) { data ->
             Snackbar(
                 snackbarData   = data,
-                containerColor = Color(0xFF2D1B4E),
-                contentColor   = Color.White,
-                actionColor    = ElectricPurple,
-                shape          = RoundedCornerShape(14.dp)
+                containerColor = LG_Surface,
+                contentColor   = LG_TextPrimary,
+                actionColor    = LG_Violet,
+                shape          = RoundedCornerShape(12.dp)
             )
         }
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Thin divider between value props
-// ─────────────────────────────────────────────────────────────────────────────
-@Composable
-private fun ValuePropDivider() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(1.dp)
-            .background(
-                Brush.horizontalGradient(
-                    listOf(Color.Transparent, Color.White.copy(0.08f), Color.Transparent)
-                )
-            )
-    )
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Google "G" logo
-// ─────────────────────────────────────────────────────────────────────────────
-@Composable
-private fun GoogleGLogo(modifier: Modifier = Modifier) {
-    Box(modifier = modifier.size(24.dp), contentAlignment = Alignment.Center) {
-        Box(
-            modifier = Modifier.size(22.dp).clip(CircleShape).background(Color.White),
-            contentAlignment = Alignment.Center
-        ) {
-            Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                Column {
-                    Row {
-                        Box(Modifier.size(5.dp).background(Color(0xFF4285F4)))
-                        Box(Modifier.size(5.dp).background(Color(0xFFEA4335)))
-                    }
-                    Row {
-                        Box(Modifier.size(5.dp).background(Color(0xFFFBBC05)))
-                        Box(Modifier.size(5.dp).background(Color(0xFF34A853)))
-                    }
-                }
-            }
-        }
-    }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Value proposition row
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Value prop row — icon + text, NO glass card ──────────────────────────────
 @Composable
 private fun ValuePropRow(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     tint: Color,
     text: String
 ) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
         Box(
             modifier = Modifier
-                .size(38.dp)
-                .clip(RoundedCornerShape(11.dp))
-                .background(
-                    Brush.radialGradient(listOf(tint.copy(alpha = 0.22f), tint.copy(alpha = 0.06f)))
-                )
-                .border(1.dp, tint.copy(alpha = 0.22f), RoundedCornerShape(11.dp)),
+                .size(36.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(tint.copy(alpha = 0.12f)),
             contentAlignment = Alignment.Center
         ) {
-            Icon(icon, null, tint = tint, modifier = Modifier.size(19.dp))
+            Icon(icon, null, tint = tint, modifier = Modifier.size(18.dp))
         }
         Spacer(modifier = Modifier.width(14.dp))
         Text(
             text       = text,
-            color      = MutedGrey.copy(alpha = 0.90f),
+            color      = LG_TextSecond,
             fontSize   = 14.sp,
             lineHeight = 20.sp,
             modifier   = Modifier.weight(1f)
         )
+    }
+}
+
+// ── Google "G" logo (pixel-grid approach) ─────────────────────────────────────
+@Composable
+private fun GoogleGLogo(modifier: Modifier = Modifier) {
+    Box(modifier = modifier.size(22.dp).clip(CircleShape).background(Color.White), contentAlignment = Alignment.Center) {
+        Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+            Column {
+                Row {
+                    Box(Modifier.size(5.dp).background(Color(0xFF4285F4)))
+                    Box(Modifier.size(5.dp).background(Color(0xFFEA4335)))
+                }
+                Row {
+                    Box(Modifier.size(5.dp).background(Color(0xFFFBBC05)))
+                    Box(Modifier.size(5.dp).background(Color(0xFF34A853)))
+                }
+            }
+        }
     }
 }

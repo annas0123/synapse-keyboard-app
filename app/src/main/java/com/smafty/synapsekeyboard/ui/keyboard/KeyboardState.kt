@@ -21,6 +21,7 @@ const val TOOL_AI_PROMPTS     = "ai_prompts"
 const val TOOL_THEME_SWITCHER = "theme_switcher"
 const val TOOL_SIZE_PANEL     = "size_panel"
 
+
 // ---------------------------------------------------------------------------
 // Clipboard Item Model
 // ---------------------------------------------------------------------------
@@ -98,8 +99,8 @@ class KeyboardUiState {
     // Keyboard height scale factor — 0.85 (small) to 1.3 (large), default 1.0
     var keyHeightScale by mutableFloatStateOf(1.0f)
 
-    // Active theme preset
-    var activeTheme by mutableStateOf(KeyboardTheme.DARK_ELEGANCE)
+    // Active theme preset — defaults to PREMIUM_BLACK (OLED optimised dark theme)
+    var activeTheme by mutableStateOf(KeyboardTheme.PREMIUM_BLACK)
 
     // Currently selected emoji category index
     var emojiCategoryIndex by mutableStateOf(0)
@@ -177,6 +178,8 @@ class KeyboardUiState {
         }
         mode = KeyboardMode.SIZE_PANEL
     }
+
+
 
     fun exitSpecialMode() {
         mode = previousMode

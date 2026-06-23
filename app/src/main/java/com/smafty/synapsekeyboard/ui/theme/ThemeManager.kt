@@ -12,126 +12,175 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 /**
- * 5 premium theme color palettes matching the app's Dark Elegance style.
+ * Premium minimal theme system — 2 presets only: Premium Black (default) and Premium White.
+ * Each preset contains the complete color vocabulary for app screens, keyboard, and overlays.
  */
 enum class AppThemePreset(
     val id: String,
     val displayName: String,
+
+    // Core surfaces
     val primary: Color,
     val background: Color,
-    val secondary: Color,
     val surface: Color,
-    val muted: Color,
-    val isDark: Boolean = true
+    val surfaceElevated: Color,
+    val border: Color,
+    val borderActive: Color,
+    val primaryMuted: Color,
+
+    // Text
+    val textPrimary: Color,
+    val textSecondary: Color,
+    val textTertiary: Color,
+
+    // Semantic
+    val accent: Color,
+    val success: Color,
+    val error: Color,
+    val warning: Color,
+
+    // Keyboard-specific
+    val keyboardBg: Color,
+    val keyFace: Color,
+    val keyFacePressed: Color,
+    val keyText: Color,
+    val keyBorder: Color,
+    val toolbarBg: Color,
+    val specialKeyBg: Color,
+    val specialKeyIcon: Color,
+    val actionKeyBg: Color,
+
+    // Gradient endpoints for primary CTA buttons
+    val primaryGradientStart: Color,
+    val primaryGradientEnd: Color,
+
+    val isDark: Boolean = true,
+
+    // Legacy compat — previously "secondary" and "muted" were separate fields
+    @Deprecated("Use 'accent' instead") val secondary: Color = accent,
+    @Deprecated("Use 'textSecondary' instead") val muted: Color = textSecondary
 ) {
-    // ── Dark themes ────────────────────────────────────────────────────────────
-    DARK_ELEGANCE(
-        // Inspired by: Linear.app — deep indigo on near-black with violet accents
-        "dark_elegance", "Midnight Violet",
-        primary    = Color(0xFF7C6AF7), // Soft electric violet
-        background = Color(0xFF0D0D14), // True off-black
-        secondary  = Color(0xFF2DD4BF), // Teal — contrasts perfectly
-        surface    = Color(0xFF18182B), // Deep indigo surface
-        muted      = Color(0xFF7B829A)  // Muted blue-grey
+    // ── Premium Black (Default) ─────────────────────────────────────────────
+    PREMIUM_BLACK(
+        id              = "premium_black",
+        displayName     = "Premium Black",
+        isDark          = true,
+
+        primary         = PremiumBlackColors.Primary,
+        background      = PremiumBlackColors.Background,
+        surface         = PremiumBlackColors.Surface,
+        surfaceElevated = PremiumBlackColors.SurfaceElevated,
+        border          = PremiumBlackColors.Border,
+        borderActive    = PremiumBlackColors.BorderActive,
+        primaryMuted    = PremiumBlackColors.PrimaryMuted,
+
+        textPrimary     = PremiumBlackColors.TextPrimary,
+        textSecondary   = PremiumBlackColors.TextSecondary,
+        textTertiary    = PremiumBlackColors.TextTertiary,
+
+        accent          = PremiumBlackColors.Accent,
+        success         = PremiumBlackColors.Success,
+        error           = PremiumBlackColors.Error,
+        warning         = PremiumBlackColors.Warning,
+
+        keyboardBg      = PremiumBlackColors.KeyboardBg,
+        keyFace         = PremiumBlackColors.KeyFace,
+        keyFacePressed  = PremiumBlackColors.KeyFacePressed,
+        keyText         = PremiumBlackColors.KeyText,
+        keyBorder       = PremiumBlackColors.KeyBorder,
+        toolbarBg       = PremiumBlackColors.ToolbarBg,
+        specialKeyBg    = PremiumBlackColors.SpecialKeyBg,
+        specialKeyIcon  = PremiumBlackColors.SpecialKeyIcon,
+        actionKeyBg     = PremiumBlackColors.ActionKeyBg,
+
+        primaryGradientStart = PremiumBlackColors.Primary,
+        primaryGradientEnd   = PremiumBlackColors.PrimaryGradientEnd,
+
+        secondary       = PremiumBlackColors.Accent,
+        muted           = PremiumBlackColors.TextSecondary
     ),
-    CYBERPUNK(
-        // Inspired by: Vercel dark — pitch black with bold neon accents
-        "cyberpunk", "Neon Pulse",
-        primary    = Color(0xFFE879F9), // Electric magenta-pink
-        background = Color(0xFF07070A), // Near-black
-        secondary  = Color(0xFF00FECA), // Aqua-green neon
-        surface    = Color(0xFF111119), // Very dark surface
-        muted      = Color(0xFF6B7280)  // Neutral grey
-    ),
-    EMERALD_FOREST(
-        // Inspired by: Stripe — deep navy with rich emerald
-        "emerald_forest", "Emerald Depth",
-        primary    = Color(0xFF10B981), // Emerald green
-        background = Color(0xFF0A0F1E), // Deep navy-black
-        secondary  = Color(0xFFFBBF24), // Warm amber accent
-        surface    = Color(0xFF111827), // Graphite navy
-        muted      = Color(0xFF6B8F7A)  // Muted sage
-    ),
-    SUNSET_HORIZON(
-        // Inspired by: Raycast — deep purple base with warm sunset tones
-        "sunset_horizon", "Sunset Glow",
-        primary    = Color(0xFFF97316), // Vivid orange
-        background = Color(0xFF0F0A1A), // Deep violet-black
-        secondary  = Color(0xFFEC4899), // Hot pink complement
-        surface    = Color(0xFF1A1028), // Rich plum surface
-        muted      = Color(0xFF8B7FA0)  // Muted purple-grey
-    ),
-    NORDIC_FROST(
-        // Inspired by: GitHub Dark — deep blue with icy cyan
-        "nordic_frost", "Arctic Blue",
-        primary    = Color(0xFF38BDF8), // Bright sky blue
-        background = Color(0xFF09111F), // Near-black navy
-        secondary  = Color(0xFFA78BFA), // Soft lavender complement
-        surface    = Color(0xFF111D30), // Dark navy surface
-        muted      = Color(0xFF64748B)  // Slate blue-grey
-    ),
-    // ── Light themes ───────────────────────────────────────────────────────────
-    LIGHT_SAKURA(
-        // Inspired by: Notion — clean white with confident rose
-        "light_sakura", "Rose Quartz",
-        primary    = Color(0xFFE11D48), // Rose red
-        background = Color(0xFFFAFAFC), // Off-white cool
-        secondary  = Color(0xFFF43F5E), // Warm rose
-        surface    = Color(0xFFF1F5F9), // Light slate surface
-        muted      = Color(0xFF64748B), // Slate grey text
-        isDark     = false
-    ),
-    OCEAN_BREEZE(
-        // Inspired by: Linear light — airy blue with clean whites
-        "ocean_breeze", "Sky Horizon",
-        primary    = Color(0xFF2563EB), // Cobalt blue
-        background = Color(0xFFF8FAFF), // Almost-white blue tint
-        secondary  = Color(0xFF0EA5E9), // Sky blue
-        surface    = Color(0xFFEFF6FF), // Light blue-white
-        muted      = Color(0xFF475569), // Mid slate
-        isDark     = false
-    ),
-    PASTEL_LAVENDER(
-        // Inspired by: Framer — soft purple gradients on white
-        "pastel_lavender", "Lavender Mist",
-        primary    = Color(0xFF6D28D9), // Deep violet
-        background = Color(0xFFFBFAFF), // Warm near-white
-        secondary  = Color(0xFF8B5CF6), // Medium violet
-        surface    = Color(0xFFF3F0FF), // Lavender tinted surface
-        muted      = Color(0xFF6B5B95), // Muted purple
-        isDark     = false
-    ),
-    WARM_SAND(
-        // Inspired by: Superhuman — warm amber on cream
-        "warm_sand", "Amber Sand",
-        primary    = Color(0xFFD97706), // Warm amber
-        background = Color(0xFFFFFBF0), // Cream white
-        secondary  = Color(0xFF92400E), // Dark amber
-        surface    = Color(0xFFFEF3C7), // Pale yellow surface
-        muted      = Color(0xFF78716C), // Warm stone
-        isDark     = false
-    ),
-    MINT_FRESH(
-        // Inspired by: Clerk — fresh mint on bright white
-        "mint_fresh", "Fresh Mint",
-        primary    = Color(0xFF059669), // Rich emerald
-        background = Color(0xFFF7FFFC), // Almost-white mint
-        secondary  = Color(0xFF0D9488), // Teal
-        surface    = Color(0xFFECFDF5), // Mint surface
-        muted      = Color(0xFF4B7563), // Muted teal-grey
-        isDark     = false
-    )
+
+    // ── Premium White ────────────────────────────────────────────────────────
+    PREMIUM_WHITE(
+        id              = "premium_white",
+        displayName     = "Premium White",
+        isDark          = false,
+
+        primary         = PremiumWhiteColors.Primary,
+        background      = PremiumWhiteColors.Background,
+        surface         = PremiumWhiteColors.Surface,
+        surfaceElevated = PremiumWhiteColors.SurfaceElevated,
+        border          = PremiumWhiteColors.Border,
+        borderActive    = PremiumWhiteColors.BorderActive,
+        primaryMuted    = PremiumWhiteColors.PrimaryMuted,
+
+        textPrimary     = PremiumWhiteColors.TextPrimary,
+        textSecondary   = PremiumWhiteColors.TextSecondary,
+        textTertiary    = PremiumWhiteColors.TextTertiary,
+
+        accent          = PremiumWhiteColors.Accent,
+        success         = PremiumWhiteColors.Success,
+        error           = PremiumWhiteColors.Error,
+        warning         = PremiumWhiteColors.Warning,
+
+        keyboardBg      = PremiumWhiteColors.KeyboardBg,
+        keyFace         = PremiumWhiteColors.KeyFace,
+        keyFacePressed  = PremiumWhiteColors.KeyFacePressed,
+        keyText         = PremiumWhiteColors.KeyText,
+        keyBorder       = PremiumWhiteColors.KeyBorder,
+        toolbarBg       = PremiumWhiteColors.ToolbarBg,
+        specialKeyBg    = PremiumWhiteColors.SpecialKeyBg,
+        specialKeyIcon  = PremiumWhiteColors.SpecialKeyIcon,
+        actionKeyBg     = PremiumWhiteColors.ActionKeyBg,
+
+        primaryGradientStart = PremiumWhiteColors.Primary,
+        primaryGradientEnd   = PremiumWhiteColors.PrimaryGradientEnd,
+
+        secondary       = PremiumWhiteColors.Accent,
+        muted           = PremiumWhiteColors.TextSecondary
+    );
+
+    companion object {
+        /**
+         * Map old theme IDs from the 10-theme system to the new 2-theme system.
+         * Any previously-saved dark theme maps → PREMIUM_BLACK.
+         * Any previously-saved light theme maps → PREMIUM_WHITE.
+         */
+        private val legacyIdMap = mapOf(
+            // Old dark themes
+            "dark_elegance"   to PREMIUM_BLACK,
+            "cyberpunk"       to PREMIUM_BLACK,
+            "emerald_forest"  to PREMIUM_BLACK,
+            "sunset_horizon"  to PREMIUM_BLACK,
+            "nordic_frost"    to PREMIUM_BLACK,
+            // Old light themes
+            "light_sakura"    to PREMIUM_WHITE,
+            "ocean_breeze"    to PREMIUM_WHITE,
+            "pastel_lavender" to PREMIUM_WHITE,
+            "warm_sand"       to PREMIUM_WHITE,
+            "mint_fresh"      to PREMIUM_WHITE,
+            // New IDs
+            "premium_black"   to PREMIUM_BLACK,
+            "premium_white"   to PREMIUM_WHITE
+        )
+
+        fun fromId(id: String): AppThemePreset {
+            return legacyIdMap[id] ?: PREMIUM_BLACK
+        }
+    }
 }
+
 /**
  * Singleton to manage active theme preset, load theme on startup from Room DB,
  * and persist selected theme on changes.
  */
 object ThemeManager {
-    var currentTheme by mutableStateOf(AppThemePreset.DARK_ELEGANCE)
+    var currentTheme by mutableStateOf(AppThemePreset.PREMIUM_BLACK)
         private set
 
     /**
      * Initializes the theme from the offline Room database.
+     * Handles migration from old 10-theme IDs to the new 2-theme system.
      * Safe to invoke from any thread; queries are moved to Dispatchers.IO.
      */
     fun initialize(context: Context) {
@@ -140,15 +189,13 @@ object ThemeManager {
                 val db = SynapseDatabase.getInstance(context)
                 val settings = db.themeSettingsDao().getThemeSettings()
                 settings?.let {
-                    val preset = AppThemePreset.values().firstOrNull { p -> p.id == it.activeThemeId }
-                    preset?.let { p ->
-                        CoroutineScope(Dispatchers.Main).launch {
-                            currentTheme = p
-                        }
+                    val preset = AppThemePreset.fromId(it.activeThemeId)
+                    CoroutineScope(Dispatchers.Main).launch {
+                        currentTheme = preset
                     }
                 }
             } catch (e: Exception) {
-                // Fail-safe default
+                // Fail-safe default — PREMIUM_BLACK
             }
         }
     }

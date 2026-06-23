@@ -8,6 +8,7 @@ import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,10 +25,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -35,18 +34,28 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.smafty.synapsekeyboard.ui.keyboard.KeyboardTheme
-import com.smafty.synapsekeyboard.ui.theme.DeepSlate
-import com.smafty.synapsekeyboard.ui.theme.ElectricPurple
-import com.smafty.synapsekeyboard.ui.theme.EmeraldGreen
-import com.smafty.synapsekeyboard.ui.theme.GlassmorphismColor
-import com.smafty.synapsekeyboard.ui.theme.MutedGrey
-import com.smafty.synapsekeyboard.ui.theme.TextColor
+
+// ── Premium Minimal design tokens ─────────────────────────────────────────────
+private val KT_Bg           = Color(0xFF0A0A0F)
+private val KT_Surface      = Color(0xFF141420)
+private val KT_SurfaceHigh  = Color(0xFF1C1C2A)
+private val KT_Border       = Color(0xFF2A2A3A)
+private val KT_Violet       = Color(0xFF7C5CFC)
+private val KT_TextPrimary  = Color(0xFFF0F0F5)
+private val KT_TextSecond   = Color(0xFF8888A0)
+private val KT_Success      = Color(0xFF34D399)
+private val KT_Error        = Color(0xFFF87171)
 
 /**
- * KeyboardTestScreen — Premium redesign. All backend state/prefs preserved.
+ * KeyboardTestScreen — Phase 3 redesign.
+ * - #0A0A0F background
+ * - #141420 notepad + card surfaces, #2A2A3A borders
+ * - Violet slider, 2-circle theme selector
+ * - Backend (SharedPreferences) fully preserved
  */
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -61,42 +70,33 @@ fun KeyboardTestScreen(onBack: () -> Unit) {
     var keyboardScale by remember {
         mutableFloatStateOf(prefs.getFloat("keyboard_height_scale", 1.0f))
     }
+    // Phase 2 migration: use fromPrefs() to handle old legacy theme names
     var activeTheme by remember {
-        val savedTheme = prefs.getString("keyboard_theme", KeyboardTheme.DARK_ELEGANCE.name)
-        mutableStateOf(
-            try { KeyboardTheme.valueOf(savedTheme ?: KeyboardTheme.DARK_ELEGANCE.name) }
-            catch (e: Exception) { KeyboardTheme.DARK_ELEGANCE }
-        )
+        val savedTheme = prefs.getString("keyboard_theme", KeyboardTheme.PREMIUM_BLACK.name)
+        mutableStateOf(KeyboardTheme.fromPrefs(savedTheme))
     }
 
     val imm = context.getSystemService(InputMethodManager::class.java)
 
-    // Use InputMethodManager APIs instead of Settings.Secure (blocked on targetSdk 34+)
     val isEnabled = remember {
         try {
             imm?.enabledInputMethodList?.any {
                 it.packageName == "com.smafty.synapsekeyboard"
             } ?: false
-        } catch (e: Exception) {
-            false
-        }
+        } catch (e: Exception) { false }
     }
     val isDefault = remember {
         try {
             val defaultIme = Settings.Secure.getString(
-                context.contentResolver,
-                "default_input_method"
+                context.contentResolver, "default_input_method"
             )
             defaultIme?.contains("com.smafty.synapsekeyboard") ?: false
         } catch (e: Exception) {
-            // Fallback: check if our keyboard is the current one via IMM
             try {
                 imm?.enabledInputMethodList?.any {
                     it.packageName == "com.smafty.synapsekeyboard"
                 } ?: false
-            } catch (ex: Exception) {
-                false
-            }
+            } catch (ex: Exception) { false }
         }
     }
 
@@ -109,13 +109,13 @@ fun KeyboardTestScreen(onBack: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(DeepSlate)
+            .background(KT_Bg)
             .statusBarsPadding()
             .navigationBarsPadding()
             .imePadding()
             .padding(horizontal = 20.dp)
     ) {
-        Spacer(modifier = Modifier.height(14.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         // ── Header ─────────────────────────────────────────────────────────────
         Row(
@@ -123,37 +123,27 @@ fun KeyboardTestScreen(onBack: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = { testText = ""; onBack() }) {
-                Icon(Icons.Rounded.ArrowBack, contentDescription = "Back", tint = TextColor)
+                Icon(Icons.Rounded.ArrowBack, contentDescription = "Back", tint = KT_TextPrimary)
             }
             Spacer(modifier = Modifier.width(4.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Box(
-                    modifier = Modifier
-                        .width(28.dp)
-                        .height(3.dp)
-                        .clip(RoundedCornerShape(2.dp))
-                        .background(
-                            Brush.horizontalGradient(listOf(ElectricPurple, ElectricPurple.copy(0f)))
-                        )
-                )
-                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text       = "Keyboard Test",
-                    style      = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.ExtraBold,
-                    color      = TextColor
+                    fontSize   = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color      = KT_TextPrimary
                 )
                 Text(
-                    text  = "Test your Synapse keyboard",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MutedGrey.copy(alpha = 0.65f)
+                    text     = "Test your Synapse keyboard",
+                    fontSize = 13.sp,
+                    color    = KT_TextSecond
                 )
             }
             IconButton(onClick = { showSettingsPanel = !showSettingsPanel }) {
                 Icon(
                     imageVector        = Icons.Rounded.Tune,
                     contentDescription = "Toggle Panel",
-                    tint               = if (showSettingsPanel) ElectricPurple else MutedGrey.copy(alpha = 0.5f)
+                    tint               = if (showSettingsPanel) KT_Violet else KT_TextSecond
                 )
             }
             IconButton(onClick = {
@@ -163,7 +153,7 @@ fun KeyboardTestScreen(onBack: () -> Unit) {
                     context.startActivity(intent)
                 } catch (e: Exception) { }
             }) {
-                Icon(Icons.Rounded.Settings, contentDescription = "Settings", tint = ElectricPurple)
+                Icon(Icons.Rounded.Settings, contentDescription = "Settings", tint = KT_Violet)
             }
         }
 
@@ -179,244 +169,162 @@ fun KeyboardTestScreen(onBack: () -> Unit) {
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
 
                 // Keyboard Status Card
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .shadow(
-                            elevation = 4.dp,
-                            shape = RoundedCornerShape(20.dp),
-                            spotColor = ElectricPurple.copy(alpha = 0.16f),
-                            ambientColor = ElectricPurple.copy(alpha = 0.04f)
-                        )
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(GlassmorphismColor)
-                        .padding(16.dp)
-                ) {
-                    Column {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                modifier = Modifier
-                                    .width(3.dp)
-                                    .height(11.dp)
-                                    .clip(RoundedCornerShape(2.dp))
-                                    .background(ElectricPurple)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
+                SectionCard {
+                    SectionLabel(text = "KEYBOARD STATUS")
+                    Spacer(modifier = Modifier.height(12.dp))
+                    StatusRow(label = "Enabled",        isActive = isEnabled,              activeText = "Yes",   inactiveText = "No")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    StatusRow(label = "Set as Default", isActive = isDefault,              activeText = "Yes",   inactiveText = "No")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    StatusRow(label = "Ready to Use",   isActive = isEnabled && isDefault, activeText = "Ready", inactiveText = "Not Ready")
+
+                    if (!isEnabled || !isDefault) {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(0xFFFBBF24).copy(alpha = 0.10f))
+                                .padding(horizontal = 12.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("⚠️", fontSize = 13.sp)
+                            Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text          = "KEYBOARD STATUS",
-                                style         = MaterialTheme.typography.labelSmall,
-                                color         = MutedGrey.copy(alpha = 0.55f),
-                                fontWeight    = FontWeight.Bold,
-                                letterSpacing = 1.1.sp
+                                text     = if (!isEnabled) "Enable Synapse in keyboard settings first"
+                                           else "Set Synapse as default keyboard",
+                                fontSize = 12.sp,
+                                color    = Color(0xFFFBBF24)
                             )
-                        }
-                        Spacer(modifier = Modifier.height(14.dp))
-                        StatusRow(label = "Enabled",      isActive = isEnabled,              activeText = "Yes",   inactiveText = "No")
-                        Spacer(modifier = Modifier.height(8.dp))
-                        StatusRow(label = "Set as Default", isActive = isDefault,            activeText = "Yes",   inactiveText = "No")
-                        Spacer(modifier = Modifier.height(8.dp))
-                        StatusRow(label = "Ready to Use", isActive = isEnabled && isDefault, activeText = "Ready", inactiveText = "Not Ready")
-                        if (!isEnabled || !isDefault) {
-                            Spacer(modifier = Modifier.height(12.dp))
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .background(Color(0xFFF59E0B).copy(alpha = 0.10f))
-                                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text("⚠️", fontSize = 13.sp)
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text  = if (!isEnabled) "Enable Synapse in keyboard settings first"
-                                            else "Set Synapse as default keyboard",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = Color(0xFFF59E0B),
-                                    fontSize = 12.sp
-                                )
-                            }
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
                 // Keyboard Size Card
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .shadow(
-                            elevation = 4.dp,
-                            shape = RoundedCornerShape(20.dp),
-                            spotColor = ElectricPurple.copy(alpha = 0.16f),
-                            ambientColor = ElectricPurple.copy(alpha = 0.04f)
-                        )
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(GlassmorphismColor)
-                        .padding(horizontal = 16.dp, vertical = 14.dp)
-                ) {
-                    Column {
-                        Row(
-                            modifier              = Modifier.fillMaxWidth(),
-                            verticalAlignment     = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Box(
-                                    modifier = Modifier
-                                        .width(3.dp)
-                                        .height(11.dp)
-                                        .clip(RoundedCornerShape(2.dp))
-                                        .background(ElectricPurple)
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text          = "KEYBOARD SIZE",
-                                    style         = MaterialTheme.typography.labelSmall,
-                                    color         = MutedGrey.copy(alpha = 0.55f),
-                                    fontWeight    = FontWeight.Bold,
-                                    letterSpacing = 1.1.sp
-                                )
-                            }
-                            Text(
-                                text = when {
-                                    keyboardScale <= 0.88f -> "Small"
-                                    keyboardScale <= 1.05f -> "Medium"
-                                    keyboardScale <= 1.20f -> "Large"
-                                    else                   -> "Extra Large"
-                                },
-                                color      = ElectricPurple,
-                                fontSize   = 13.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Row(
-                            modifier              = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            listOf("S", "M", "L", "XL").forEach {
-                                Text(it, color = MutedGrey.copy(alpha = 0.50f), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
-                            }
-                        }
-                        Slider(
-                            value       = keyboardScale,
-                            onValueChange = { newScale ->
-                                keyboardScale = newScale
-                                prefs.edit().putFloat("keyboard_height_scale", newScale).apply()
+                SectionCard {
+                    Row(
+                        modifier              = Modifier.fillMaxWidth(),
+                        verticalAlignment     = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        SectionLabel(text = "KEYBOARD SIZE")
+                        Text(
+                            text = when {
+                                keyboardScale <= 0.88f -> "Small"
+                                keyboardScale <= 1.05f -> "Medium"
+                                keyboardScale <= 1.20f -> "Large"
+                                else                   -> "Extra Large"
                             },
-                            valueRange = 0.80f..1.30f,
-                            steps      = 4,
-                            colors     = SliderDefaults.colors(
-                                thumbColor        = ElectricPurple,
-                                activeTrackColor  = ElectricPurple,
-                                inactiveTrackColor = MutedGrey.copy(alpha = 0.15f)
-                            )
+                            color      = KT_Violet,
+                            fontSize   = 13.sp,
+                            fontWeight = FontWeight.SemiBold
                         )
                     }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(
+                        modifier              = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        listOf("S", "M", "L", "XL").forEach {
+                            Text(it, color = KT_TextSecond, fontSize = 11.sp, fontWeight = FontWeight.Medium)
+                        }
+                    }
+                    Slider(
+                        value          = keyboardScale,
+                        onValueChange  = { newScale ->
+                            keyboardScale = newScale
+                            prefs.edit().putFloat("keyboard_height_scale", newScale).apply()
+                        },
+                        valueRange = 0.80f..1.30f,
+                        steps      = 4,
+                        colors     = SliderDefaults.colors(
+                            thumbColor         = KT_Violet,
+                            activeTrackColor   = KT_Violet,
+                            inactiveTrackColor = KT_Border
+                        )
+                    )
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
-                // Keyboard Theme Card
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .shadow(
-                            elevation = 4.dp,
-                            shape = RoundedCornerShape(20.dp),
-                            spotColor = ElectricPurple.copy(alpha = 0.16f),
-                            ambientColor = ElectricPurple.copy(alpha = 0.04f)
+                // Keyboard Theme Card — 2-circle selector
+                SectionCard {
+                    Row(
+                        modifier              = Modifier.fillMaxWidth(),
+                        verticalAlignment     = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        SectionLabel(text = "KEYBOARD THEME")
+                        Text(
+                            text       = activeTheme.displayName,
+                            color      = KT_Violet,
+                            fontSize   = 13.sp,
+                            fontWeight = FontWeight.SemiBold
                         )
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(GlassmorphismColor)
-                        .padding(horizontal = 16.dp, vertical = 14.dp)
-                ) {
-                    Column {
-                        Row(
-                            modifier              = Modifier.fillMaxWidth(),
-                            verticalAlignment     = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Box(
-                                    modifier = Modifier
-                                        .width(3.dp)
-                                        .height(11.dp)
-                                        .clip(RoundedCornerShape(2.dp))
-                                        .background(ElectricPurple)
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text          = "KEYBOARD THEME",
-                                    style         = MaterialTheme.typography.labelSmall,
-                                    color         = MutedGrey.copy(alpha = 0.55f),
-                                    fontWeight    = FontWeight.Bold,
-                                    letterSpacing = 1.1.sp
-                                )
-                            }
-                            Text(
-                                text       = activeTheme.displayName,
-                                color      = ElectricPurple,
-                                fontSize   = 13.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(14.dp))
-                        androidx.compose.foundation.lazy.LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
-                            modifier              = Modifier.fillMaxWidth()
-                        ) {
-                            items(KeyboardTheme.values().size) { idx ->
-                                val themeItem  = KeyboardTheme.values()[idx]
-                                val isSelected = themeItem == activeTheme
-                                Box(
-                                    modifier = Modifier
-                                        .width(130.dp)
-                                        .height(72.dp)
-                                        .shadow(if (isSelected) 6.dp else 2.dp, RoundedCornerShape(14.dp),
-                                            spotColor = if (isSelected) ElectricPurple.copy(0.5f) else Color.Transparent)
-                                        .clip(RoundedCornerShape(14.dp))
-                                        .background(themeItem.keyboardBg)
-                                        .then(
-                                            if (isSelected) Modifier.border(1.5.dp, ElectricPurple.copy(0.70f), RoundedCornerShape(14.dp))
-                                            else Modifier.border(1.dp, Color.White.copy(0.10f), RoundedCornerShape(14.dp))
-                                        )
-                                        .clickable {
+                    }
+                    Spacer(modifier = Modifier.height(14.dp))
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier              = Modifier.fillMaxWidth()
+                    ) {
+                        KeyboardTheme.entries.forEach { themeItem ->
+                            val isSelected = themeItem == activeTheme
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier
+                                    .clickable(
+                                        indication        = null,
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        onClick           = {
                                             activeTheme = themeItem
                                             prefs.edit().putString("keyboard_theme", themeItem.name).apply()
                                         }
-                                        .padding(8.dp)
+                                    )
+                                    .padding(4.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .width(100.dp)
+                                        .height(60.dp)
+                                        .clip(RoundedCornerShape(10.dp))
+                                        .background(themeItem.keyboardBg)
+                                        .border(
+                                            width = if (isSelected) 1.5.dp else 0.5.dp,
+                                            color = if (isSelected) KT_Violet else themeItem.borderColor,
+                                            shape = RoundedCornerShape(10.dp)
+                                        )
+                                        .padding(8.dp),
+                                    contentAlignment = Alignment.Center
                                 ) {
                                     Column(
-                                        modifier = Modifier.fillMaxSize(),
-                                        verticalArrangement = Arrangement.SpaceBetween
+                                        verticalArrangement   = Arrangement.SpaceBetween,
+                                        horizontalAlignment   = Alignment.CenterHorizontally,
+                                        modifier              = Modifier.fillMaxSize()
                                     ) {
                                         Text(
                                             text       = themeItem.displayName,
                                             color      = themeItem.keyText,
-                                            fontSize   = 11.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            maxLines   = 1
+                                            fontSize   = 10.sp,
+                                            fontWeight = FontWeight.SemiBold
                                         )
-                                        Row(
-                                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                            verticalAlignment     = Alignment.CenterVertically
-                                        ) {
-                                            Box(modifier = Modifier.size(16.dp).clip(RoundedCornerShape(4.dp)).background(themeItem.keyFaceDefault)
-                                                .then(if (themeItem.hasBorder) Modifier.border(0.5.dp, themeItem.borderColor, RoundedCornerShape(4.dp)) else Modifier))
-                                            Box(modifier = Modifier.size(16.dp).clip(RoundedCornerShape(4.dp)).background(themeItem.keyFaceDark)
-                                                .then(if (themeItem.hasBorder) Modifier.border(0.5.dp, themeItem.borderColor, RoundedCornerShape(4.dp)) else Modifier))
-                                            Box(modifier = Modifier.size(16.dp).clip(RoundedCornerShape(4.dp))
-                                                .background(Brush.linearGradient(listOf(themeItem.accentGradientStart, themeItem.accentGradientEnd))))
+                                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                            Box(modifier = Modifier.size(14.dp).clip(RoundedCornerShape(3.dp)).background(themeItem.keyFaceDefault))
+                                            Box(modifier = Modifier.size(14.dp).clip(RoundedCornerShape(3.dp)).background(themeItem.keyFaceDark))
+                                            Box(modifier = Modifier.size(14.dp).clip(RoundedCornerShape(3.dp)).background(themeItem.accentGradientStart))
                                         }
                                     }
+                                }
+                                if (isSelected) {
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text("✓", color = KT_Violet, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
                     }
                 }
+
                 Spacer(modifier = Modifier.height(12.dp))
             }
         }
@@ -424,37 +332,16 @@ fun KeyboardTestScreen(onBack: () -> Unit) {
         Spacer(modifier = Modifier.height(8.dp))
 
         // ── Notepad label ──────────────────────────────────────────────────────
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)) {
-            Box(
-                modifier = Modifier
-                    .width(3.dp)
-                    .height(11.dp)
-                    .clip(RoundedCornerShape(2.dp))
-                    .background(EmeraldGreen)
-            )
-            Spacer(modifier = Modifier.width(6.dp))
-            Text(
-                text          = "TEST NOTEPAD",
-                style         = MaterialTheme.typography.labelSmall,
-                color         = MutedGrey.copy(alpha = 0.55f),
-                fontWeight    = FontWeight.Bold,
-                letterSpacing = 1.1.sp
-            )
-        }
+        SectionLabel(text = "TEST NOTEPAD", modifier = Modifier.padding(start = 4.dp, bottom = 8.dp))
 
         // ── Notepad TextField ──────────────────────────────────────────────────
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .shadow(
-                    elevation = 4.dp,
-                    shape = RoundedCornerShape(20.dp),
-                    spotColor = ElectricPurple.copy(alpha = 0.16f),
-                    ambientColor = ElectricPurple.copy(alpha = 0.04f)
-                )
-                .clip(RoundedCornerShape(20.dp))
-                .background(GlassmorphismColor)
+                .clip(RoundedCornerShape(12.dp))
+                .background(KT_Surface)
+                .border(0.5.dp, KT_Border, RoundedCornerShape(12.dp))
                 .padding(16.dp)
         ) {
             BasicTextField(
@@ -464,16 +351,16 @@ fun KeyboardTestScreen(onBack: () -> Unit) {
                     .fillMaxSize()
                     .focusRequester(focusRequester),
                 textStyle = TextStyle(
-                    color      = TextColor,
+                    color      = KT_TextPrimary,
                     fontSize   = 16.sp,
                     lineHeight = 26.sp
                 ),
-                cursorBrush = SolidColor(ElectricPurple),
+                cursorBrush = SolidColor(KT_Violet),
                 decorationBox = { innerTextField ->
                     if (testText.isEmpty()) {
                         Text(
                             text       = "Tap here to start typing…\n\nYour Synapse keyboard should appear.\n\nTry AI features, switch between QWERTY and symbols, test shift and caps lock.\n\nThis text clears when you press back.",
-                            color      = MutedGrey.copy(alpha = 0.40f),
+                            color      = KT_TextSecond.copy(alpha = 0.50f),
                             fontSize   = 15.sp,
                             lineHeight = 26.sp
                         )
@@ -490,28 +377,56 @@ fun KeyboardTestScreen(onBack: () -> Unit) {
             modifier              = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Button(
+            OutlinedButton(
                 onClick  = { testText = "" },
                 modifier = Modifier.weight(1f).height(48.dp),
-                colors   = ButtonDefaults.buttonColors(containerColor = MutedGrey.copy(alpha = 0.18f)),
-                shape    = RoundedCornerShape(14.dp)
+                colors   = ButtonDefaults.outlinedButtonColors(contentColor = KT_TextSecond),
+                border   = androidx.compose.foundation.BorderStroke(0.5.dp, KT_Border),
+                shape    = RoundedCornerShape(12.dp)
             ) {
-                Text("Clear", fontWeight = FontWeight.SemiBold, color = TextColor)
+                Text("Clear", fontWeight = FontWeight.Medium, color = KT_TextSecond)
             }
             Button(
                 onClick = {
                     try { imm?.showInputMethodPicker() } catch (e: Exception) { }
                 },
                 modifier = Modifier.weight(1f).height(48.dp),
-                colors   = ButtonDefaults.buttonColors(containerColor = ElectricPurple),
-                shape    = RoundedCornerShape(14.dp)
+                colors   = ButtonDefaults.buttonColors(containerColor = KT_Violet),
+                shape    = RoundedCornerShape(12.dp)
             ) {
-                Text("Switch Keyboard", fontWeight = FontWeight.SemiBold)
+                Text("Switch Keyboard", fontWeight = FontWeight.Medium, color = Color.White)
             }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
     }
+}
+
+// ── Reusable card surface ─────────────────────────────────────────────────────
+@Composable
+private fun SectionCard(content: @Composable ColumnScope.() -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(KT_Surface)
+            .border(0.5.dp, KT_Border, RoundedCornerShape(12.dp))
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        content = content
+    )
+}
+
+// ── Section label (uppercase, muted, 13sp) ────────────────────────────────────
+@Composable
+private fun SectionLabel(text: String, modifier: Modifier = Modifier) {
+    Text(
+        text          = text,
+        color         = KT_TextSecond,
+        fontSize      = 12.sp,
+        fontWeight    = FontWeight.SemiBold,
+        letterSpacing = 0.8.sp,
+        modifier      = modifier
+    )
 }
 
 // ── Status Row ────────────────────────────────────────────────────────────────
@@ -529,14 +444,14 @@ private fun StatusRow(
         Icon(
             imageVector        = if (isActive) Icons.Rounded.CheckCircle else Icons.Rounded.Error,
             contentDescription = null,
-            tint               = if (isActive) EmeraldGreen else Color(0xFFEF4444),
+            tint               = if (isActive) KT_Success else KT_Error,
             modifier           = Modifier.size(16.dp)
         )
         Spacer(modifier = Modifier.width(10.dp))
-        Text(text = label, color = TextColor, fontSize = 14.sp, modifier = Modifier.weight(1f))
+        Text(text = label, color = KT_TextPrimary, fontSize = 14.sp, modifier = Modifier.weight(1f))
         Text(
             text       = if (isActive) activeText else inactiveText,
-            color      = if (isActive) EmeraldGreen else MutedGrey.copy(alpha = 0.55f),
+            color      = if (isActive) KT_Success else KT_TextSecond,
             fontSize   = 13.sp,
             fontWeight = FontWeight.SemiBold
         )

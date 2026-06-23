@@ -74,16 +74,19 @@ import com.smafty.synapsekeyboard.auth.AuthManager
 import com.smafty.synapsekeyboard.auth.SupabaseClientProvider
 import com.smafty.synapsekeyboard.data.local.SynapseDatabase
 import com.smafty.synapsekeyboard.data.local.repository.EnergyQuotaRepository
-import com.smafty.synapsekeyboard.ui.theme.DeepSlate
-import com.smafty.synapsekeyboard.ui.theme.ElectricPurple
-import com.smafty.synapsekeyboard.ui.theme.EmeraldGreen
-import com.smafty.synapsekeyboard.ui.theme.GlassmorphismColor
-import com.smafty.synapsekeyboard.ui.theme.MutedGrey
-import com.smafty.synapsekeyboard.ui.theme.TextColor
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.status.SessionStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+
+// ── Premium Minimal design tokens ────────────────────────────────────────────
+private val HS_Bg      = Color(0xFF0A0A0F)
+private val HS_Surface = Color(0xFF141420)
+private val HS_Border  = Color(0xFF2A2A3A)
+private val HS_Violet  = Color(0xFF7C5CFC)
+private val HS_Text    = Color(0xFFF0F0F5)
+private val HS_Muted   = Color(0xFF8888A0)
+private val HS_Success = Color(0xFF34D399)
 
 // ---------------------------------------------------------------------------
 // Home Screen — all backend logic unchanged, UI layer upgraded
@@ -146,6 +149,7 @@ fun HomeScreen() {
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
+            .background(HS_Bg)
             .verticalScroll(rememberScrollState())
             .statusBarsPadding()
     ) {
@@ -169,22 +173,22 @@ fun HomeScreen() {
                             .clip(RoundedCornerShape(2.dp))
                             .background(
                                 Brush.horizontalGradient(
-                                    listOf(ElectricPurple, ElectricPurple.copy(alpha = 0.0f))
+                                    listOf(HS_Violet, HS_Violet.copy(alpha = 0.0f))
                                 )
                             )
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
                         text       = "Dashboard",
-                        style      = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.ExtraBold,
-                        color      = TextColor
+                        fontSize   = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color      = HS_Text
                     )
                     Spacer(Modifier.height(3.dp))
                     Text(
                         text  = "Your AI keyboard at a glance",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MutedGrey.copy(alpha = 0.75f)
+                        fontSize = 14.sp,
+                        color = HS_Muted
                     )
                 }
             }
@@ -194,7 +198,7 @@ fun HomeScreen() {
             // ── Keyboard Status ──────────────────────────────────────────────
             AnimatedVisibility(
                 visible = visible,
-                enter   = fadeIn(tween(500, 80)) + slideInVertically(tween(500, 80)) { 40 }
+                enter   = fadeIn(tween(500, 50)) + slideInVertically(tween(500, 50)) { 40 }
             ) {
                 KeyboardStatusCard(
                     isEnabled         = isKeyboardEnabled.value,
@@ -214,7 +218,7 @@ fun HomeScreen() {
             // ── AI Energy Quota ──────────────────────────────────────────────
             AnimatedVisibility(
                 visible = visible,
-                enter   = fadeIn(tween(500, 160)) + slideInVertically(tween(500, 160)) { 40 }
+                enter   = fadeIn(tween(500, 100)) + slideInVertically(tween(500, 100)) { 40 }
             ) {
                 EnergyQuotaCard(energyUsed = energyUsed, energyAllowed = energyAllowed)
             }
@@ -224,7 +228,7 @@ fun HomeScreen() {
             // ── Offline Sync ─────────────────────────────────────────────────
             AnimatedVisibility(
                 visible = visible,
-                enter   = fadeIn(tween(500, 240)) + slideInVertically(tween(500, 240)) { 40 }
+                enter   = fadeIn(tween(500, 150)) + slideInVertically(tween(500, 150)) { 40 }
             ) {
                 OfflineSyncCard(pendingRequests = pendingRequests.intValue)
             }
@@ -234,23 +238,15 @@ fun HomeScreen() {
             // ── Section label ────────────────────────────────────────────────
             AnimatedVisibility(
                 visible = visible,
-                enter   = fadeIn(tween(400, 300))
+                enter   = fadeIn(tween(400, 200))
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .width(3.dp)
-                            .height(14.dp)
-                            .clip(RoundedCornerShape(2.dp))
-                            .background(ElectricPurple)
-                    )
-                    Spacer(Modifier.width(8.dp))
                     Text(
                         text          = "QUICK STATS",
-                        style         = MaterialTheme.typography.labelSmall,
-                        color         = MutedGrey,
+                        fontSize      = 12.sp,
+                        color         = HS_Muted,
                         letterSpacing = 1.5.sp,
-                        fontWeight    = FontWeight.Bold
+                        fontWeight    = FontWeight.SemiBold
                     )
                 }
             }
@@ -260,7 +256,7 @@ fun HomeScreen() {
             // ── Quick Stats ──────────────────────────────────────────────────
             AnimatedVisibility(
                 visible = visible,
-                enter   = fadeIn(tween(500, 320)) + slideInVertically(tween(500, 320)) { 40 }
+                enter   = fadeIn(tween(500, 200)) + slideInVertically(tween(500, 200)) { 40 }
             ) {
                 if (isWide) {
                     Row(
@@ -268,7 +264,7 @@ fun HomeScreen() {
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         StatTile("Prompts Today", "$promptsToday", Icons.Rounded.RocketLaunch, Color(0xFF3B82F6), Modifier.weight(1f))
-                        StatTile("Energy Today",  "$energyToday",  Icons.Rounded.Bolt,         EmeraldGreen,      Modifier.weight(1f))
+                        StatTile("Energy Today",  "$energyToday",  Icons.Rounded.Bolt,         HS_Success,        Modifier.weight(1f))
                         StatTile("Total Prompts", "$totalPrompts", Icons.Rounded.Functions,    Color(0xFFEC4899), Modifier.weight(1f))
                     }
                 } else {
@@ -293,9 +289,9 @@ private fun KeyboardStatusCard(
 ) {
     val isFullyActive = isEnabled && isDefault
     val statusColor = when {
-        isFullyActive -> EmeraldGreen
-        isEnabled     -> Color(0xFFF59E0B)
-        else          -> Color(0xFFEF4444)
+        isFullyActive -> HS_Success
+        isEnabled     -> Color(0xFFFBBF24)
+        else          -> Color(0xFFF87171)
     }
     val statusLabel = when {
         isFullyActive -> "Active & Running"
@@ -303,17 +299,14 @@ private fun KeyboardStatusCard(
         else          -> "Not Enabled"
     }
 
-    GlassCard(accentGlow = statusColor.copy(alpha = 0.10f), borderColor = statusColor.copy(alpha = 0.22f)) {
+    PremiumCard {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Box(
                 modifier = Modifier
-                    .size(54.dp)
-                    .shadow(8.dp, RoundedCornerShape(16.dp),
-                        spotColor = statusColor.copy(alpha = 0.30f),
-                        ambientColor = statusColor.copy(alpha = 0.10f))
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(statusColor.copy(alpha = 0.14f))
-                    .border(1.dp, statusColor.copy(alpha = 0.28f), RoundedCornerShape(16.dp)),
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(statusColor.copy(alpha = 0.12f))
+                    .border(1.dp, statusColor.copy(alpha = 0.28f), RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -327,15 +320,15 @@ private fun KeyboardStatusCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text          = "KEYBOARD STATUS",
-                    style         = MaterialTheme.typography.labelSmall,
-                    color         = MutedGrey.copy(alpha = 0.65f),
+                    fontSize      = 12.sp,
+                    color         = HS_Muted,
                     letterSpacing = 1.0.sp
                 )
                 Spacer(Modifier.height(3.dp))
                 Text(
                     text       = statusLabel,
-                    style      = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.ExtraBold,
+                    fontSize   = 15.sp,
+                    fontWeight = FontWeight.Bold,
                     color      = statusColor
                 )
             }
@@ -354,12 +347,12 @@ private fun KeyboardStatusCard(
             Text(
                 text     = "Go to Manage Keyboards and toggle \"Synapse Keyboard\" ON.",
                 style    = MaterialTheme.typography.bodySmall,
-                color    = MutedGrey,
+                color    = HS_Muted,
                 modifier = Modifier.padding(bottom = 12.dp)
             )
             Button(
                 onClick  = onEnableClick,
-                colors   = ButtonDefaults.buttonColors(containerColor = ElectricPurple),
+                colors   = ButtonDefaults.buttonColors(containerColor = HS_Violet),
                 shape    = RoundedCornerShape(14.dp),
                 modifier = Modifier.fillMaxWidth().height(46.dp)
             ) {
@@ -374,12 +367,12 @@ private fun KeyboardStatusCard(
             Text(
                 text     = "Synapse is enabled. Now set it as your default keyboard.",
                 style    = MaterialTheme.typography.bodySmall,
-                color    = MutedGrey,
+                color    = HS_Muted,
                 modifier = Modifier.padding(bottom = 12.dp)
             )
             Button(
                 onClick  = onSetDefaultClick,
-                colors   = ButtonDefaults.buttonColors(containerColor = EmeraldGreen),
+                colors   = ButtonDefaults.buttonColors(containerColor = HS_Success),
                 shape    = RoundedCornerShape(14.dp),
                 modifier = Modifier.fillMaxWidth().height(46.dp)
             ) {
@@ -406,9 +399,9 @@ private fun EnergyQuotaCard(energyUsed: Int, energyAllowed: Int) {
     )
 
     val gaugeColor = when {
-        fraction >= 0.5f -> EmeraldGreen
-        fraction >= 0.2f -> Color(0xFFF59E0B)
-        else             -> Color(0xFFEF4444)
+        fraction >= 0.5f -> HS_Success
+        fraction >= 0.2f -> Color(0xFFFBBF24)
+        else             -> Color(0xFFF87171)
     }
     val statusLabel = when {
         energyRemaining <= 0  -> "Out of Energy"
@@ -416,7 +409,7 @@ private fun EnergyQuotaCard(energyUsed: Int, energyAllowed: Int) {
         else                  -> "Energy Available"
     }
 
-    GlassCard(accentGlow = gaugeColor.copy(alpha = 0.09f), borderColor = gaugeColor.copy(alpha = 0.20f)) {
+    PremiumCard {
         Row(
             modifier              = Modifier.fillMaxWidth(),
             verticalAlignment     = Alignment.CenterVertically,
@@ -445,24 +438,14 @@ private fun EnergyQuotaCard(energyUsed: Int, energyAllowed: Int) {
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("$energyRemaining", fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, color = gaugeColor)
-                    Text("left", fontSize = 9.sp, color = MutedGrey)
+                    Text("left", fontSize = 9.sp, color = HS_Muted)
                 }
             }
 
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text          = "AI ENERGY",
-                    style         = MaterialTheme.typography.labelSmall,
-                    color         = MutedGrey.copy(alpha = 0.65f),
-                    letterSpacing = 1.0.sp
-                )
+                Text("AI ENERGY", fontSize = 12.sp, color = HS_Muted, letterSpacing = 1.0.sp)
                 Spacer(Modifier.height(3.dp))
-                Text(
-                    text       = statusLabel,
-                    style      = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.ExtraBold,
-                    color      = gaugeColor
-                )
+                Text(text = statusLabel, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = gaugeColor)
                 Spacer(Modifier.height(10.dp))
                 Row(
                     modifier          = Modifier
@@ -476,7 +459,7 @@ private fun EnergyQuotaCard(energyUsed: Int, energyAllowed: Int) {
                     Text("$energyUsed / $energyAllowed used", style = MaterialTheme.typography.bodySmall, color = gaugeColor.copy(0.85f))
                 }
                 Spacer(Modifier.height(5.dp))
-                Text("Pay-as-you-go credit", style = MaterialTheme.typography.labelSmall, color = MutedGrey.copy(0.45f))
+                Text("Pay-as-you-go credit", style = MaterialTheme.typography.labelSmall, color = HS_Muted.copy(0.45f))
             }
         }
     }
@@ -488,17 +471,15 @@ private fun EnergyQuotaCard(energyUsed: Int, energyAllowed: Int) {
 @Composable
 private fun OfflineSyncCard(pendingRequests: Int) {
     val isSynced  = pendingRequests == 0
-    val syncColor = if (isSynced) EmeraldGreen else Color(0xFFF59E0B)
-
-    GlassCard(accentGlow = syncColor.copy(alpha = 0.07f), borderColor = syncColor.copy(alpha = 0.18f)) {
+    val syncColor = if (isSynced) HS_Success else Color(0xFFFBBF24)
+    PremiumCard {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Box(
                 modifier = Modifier
-                    .size(46.dp)
-                    .shadow(6.dp, RoundedCornerShape(13.dp), spotColor = syncColor.copy(0.28f))
-                    .clip(RoundedCornerShape(13.dp))
+                    .size(44.dp)
+                    .clip(RoundedCornerShape(12.dp))
                     .background(syncColor.copy(alpha = 0.12f))
-                    .border(1.dp, syncColor.copy(alpha = 0.22f), RoundedCornerShape(13.dp)),
+                    .border(1.dp, syncColor.copy(alpha = 0.22f), RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -508,11 +489,11 @@ private fun OfflineSyncCard(pendingRequests: Int) {
             }
             Spacer(modifier = Modifier.width(14.dp))
             Column {
-                Text("SYNC STATUS", style = MaterialTheme.typography.labelSmall, color = MutedGrey.copy(0.65f), letterSpacing = 1.0.sp)
+                Text("SYNC STATUS", fontSize = 12.sp, color = HS_Muted, letterSpacing = 1.0.sp)
                 Spacer(Modifier.height(3.dp))
                 Text(
                     text       = if (isSynced) "All synced" else "$pendingRequests requests pending",
-                    style      = MaterialTheme.typography.titleSmall,
+                    fontSize   = 14.sp,
                     fontWeight = FontWeight.SemiBold,
                     color      = syncColor
                 )
@@ -543,7 +524,7 @@ private fun QuickStatsRow(promptsToday: Int, energyToday: Int, totalPrompts: Int
     Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             StatTile("Prompts Today", "$promptsToday", Icons.Rounded.RocketLaunch, Color(0xFF3B82F6), Modifier.weight(1f))
-            StatTile("Energy Today",  "$energyToday",  Icons.Rounded.Bolt,         EmeraldGreen,      Modifier.weight(1f))
+            StatTile("Energy Today",  "$energyToday",  Icons.Rounded.Bolt,         HS_Success,        Modifier.weight(1f))
         }
         StatTile("Total Prompts", "$totalPrompts", Icons.Rounded.Functions, Color(0xFFEC4899), Modifier.fillMaxWidth())
     }
@@ -562,61 +543,34 @@ private fun StatTile(
 ) {
     Box(
         modifier = modifier
-            .shadow(6.dp, RoundedCornerShape(20.dp), spotColor = accentColor.copy(0.20f), ambientColor = accentColor.copy(0.06f))
-            .clip(RoundedCornerShape(20.dp))
-            .background(accentColor.copy(alpha = 0.07f))
-            .border(1.dp, accentColor.copy(alpha = 0.20f), RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(12.dp))
+            .background(accentColor.copy(alpha = 0.08f))
+            .border(0.5.dp, accentColor.copy(alpha = 0.20f), RoundedCornerShape(12.dp))
     ) {
-        // Left accent strip
-        Box(
-            modifier = Modifier
-                .width(3.dp)
-                .height(56.dp)
-                .align(Alignment.CenterStart)
-                .clip(RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp, topEnd = 3.dp, bottomEnd = 3.dp))
-                .background(Brush.verticalGradient(listOf(accentColor, accentColor.copy(alpha = 0.2f))))
-        )
-        Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp)) {
-            Icon(icon, null, tint = accentColor, modifier = Modifier.size(22.dp))
+        Column(modifier = Modifier.padding(14.dp)) {
+            Icon(icon, null, tint = accentColor, modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.height(8.dp))
-            Text(value, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold, color = accentColor)
-            Spacer(modifier = Modifier.height(1.dp))
-            Text(label, style = MaterialTheme.typography.bodySmall, color = MutedGrey, fontWeight = FontWeight.Medium)
+            Text(value, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = accentColor)
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(label, fontSize = 12.sp, color = HS_Muted)
         }
     }
 }
 
 // ---------------------------------------------------------------------------
-// Reusable Glass Card
+// Premium solid card — replaces GlassCard
 // ---------------------------------------------------------------------------
 @Composable
-private fun GlassCard(
-    accentGlow  : Color = GlassmorphismColor,
-    borderColor : Color = Color.White.copy(alpha = 0.08f),
-    content     : @Composable ColumnScope.() -> Unit
+private fun PremiumCard(
+    content: @Composable ColumnScope.() -> Unit
 ) {
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .drawBehind {
-                drawRect(
-                    brush = Brush.radialGradient(
-                        colors = listOf(accentGlow, Color.Transparent),
-                        center = Offset(size.width / 2f, size.height / 2f),
-                        radius = size.maxDimension * 0.75f
-                    )
-                )
-            }
-            .shadow(
-                elevation = 4.dp,
-                shape = RoundedCornerShape(22.dp),
-                spotColor = ElectricPurple.copy(alpha = 0.16f),
-                ambientColor = ElectricPurple.copy(alpha = 0.04f)
-            )
-            .clip(RoundedCornerShape(22.dp))
-            .background(GlassmorphismColor)
-            .border(1.dp, borderColor, RoundedCornerShape(22.dp))
-    ) {
-        Column(modifier = Modifier.padding(18.dp), content = content)
-    }
+            .clip(RoundedCornerShape(12.dp))
+            .background(HS_Surface)
+            .border(0.5.dp, HS_Border, RoundedCornerShape(12.dp))
+            .padding(16.dp),
+        content = content
+    )
 }

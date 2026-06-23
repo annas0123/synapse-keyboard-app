@@ -2,58 +2,66 @@ package com.smafty.synapsekeyboard.ui.theme
 
 import android.app.Activity
 import android.os.Build
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-private val DarkColorScheme get() = darkColorScheme(
-    primary = ElectricPurple,
-    secondary = EmeraldGreen,
-    tertiary = Pink80,
-    background = DeepSlate,
-    surface = PitchBlack,
-    onPrimary = CrispWhite,
-    onSecondary = CrispWhite,
-    onBackground = if (ThemeManager.currentTheme.isDark) CrispWhite else Color(0xFF0F172A),
-    onSurface = if (ThemeManager.currentTheme.isDark) CrispWhite else Color(0xFF0F172A)
+/**
+ * Premium Black Material3 color scheme — maps to our PremiumBlackColors system.
+ */
+private val PremiumBlackColorScheme get() = darkColorScheme(
+    primary       = PremiumBlackColors.Primary,
+    secondary     = PremiumBlackColors.Accent,
+    tertiary      = PremiumBlackColors.Accent,
+    background    = PremiumBlackColors.Background,
+    surface       = PremiumBlackColors.Surface,
+    surfaceVariant = PremiumBlackColors.SurfaceElevated,
+    onPrimary     = PremiumBlackColors.TextPrimary,
+    onSecondary   = PremiumBlackColors.TextPrimary,
+    onBackground  = PremiumBlackColors.TextPrimary,
+    onSurface     = PremiumBlackColors.TextPrimary,
+    onSurfaceVariant = PremiumBlackColors.TextSecondary,
+    outline       = PremiumBlackColors.Border,
+    outlineVariant = PremiumBlackColors.Border,
+    error         = PremiumBlackColors.Error,
+    onError       = Color.White
 )
 
-private val LightColorScheme get() = lightColorScheme(
-    primary = ElectricPurple,
-    secondary = EmeraldGreen,
-    tertiary = Pink40,
-    background = CrispWhite,
-    surface = CrispWhite,
-    onPrimary = CrispWhite,
-    onSecondary = CrispWhite,
-    onBackground = PitchBlack,
-    onSurface = PitchBlack
+/**
+ * Premium White Material3 color scheme — maps to our PremiumWhiteColors system.
+ */
+private val PremiumWhiteColorScheme get() = lightColorScheme(
+    primary       = PremiumWhiteColors.Primary,
+    secondary     = PremiumWhiteColors.Accent,
+    tertiary      = PremiumWhiteColors.Accent,
+    background    = PremiumWhiteColors.Background,
+    surface       = PremiumWhiteColors.Surface,
+    surfaceVariant = PremiumWhiteColors.SurfaceElevated,
+    onPrimary     = Color.White,
+    onSecondary   = Color.White,
+    onBackground  = PremiumWhiteColors.TextPrimary,
+    onSurface     = PremiumWhiteColors.TextPrimary,
+    onSurfaceVariant = PremiumWhiteColors.TextSecondary,
+    outline       = PremiumWhiteColors.Border,
+    outlineVariant = PremiumWhiteColors.Border,
+    error         = PremiumWhiteColors.Error,
+    onError       = Color.White
 )
 
 @Composable
 fun SynapseKeyboardTheme(
-    darkTheme: Boolean = true, // Force Dark Elegance theme
-    dynamicColor: Boolean = false, // Disable dynamic colors to keep our premium look
+    darkTheme: Boolean = ThemeManager.currentTheme.isDark,
+    dynamicColor: Boolean = false, // Disabled — keep our premium look
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
+    val colorScheme = if (darkTheme) PremiumBlackColorScheme else PremiumWhiteColorScheme
+
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
