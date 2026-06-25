@@ -64,7 +64,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import com.smafty.synapsekeyboard.ui.theme.DeepSlate
 import com.smafty.synapsekeyboard.ui.theme.ElectricPurple
-import com.smafty.synapsekeyboard.ui.theme.EmeraldGreen
+import com.smafty.synapsekeyboard.ui.theme.SynapseSuccess
 import com.smafty.synapsekeyboard.ui.theme.MutedGrey
 import com.smafty.synapsekeyboard.ui.theme.CrispWhite
 import androidx.compose.foundation.clickable
@@ -250,9 +250,9 @@ private fun AiToolbar(
     onCancelAi: () -> Unit
 ) {
     val theme = LocalKeyboardTheme.current
-    // Gold accent for the AI logo ring (works across all themes)
-    val goldColor = Color(0xFFD97706)
-    val goldBrush  = Brush.linearGradient(listOf(Color(0xFFF59E0B), Color(0xFFD97706)))
+    // Monochrome accent for the AI logo ring (primary — white on black / black on white)
+    val goldColor = theme.accentGradientStart
+    val goldBrush  = Brush.linearGradient(listOf(theme.accentGradientStart, theme.accentGradientStart))
 
     val infiniteTransition = rememberInfiniteTransition(label = "synapse_rotation")
     val rotationAngle by infiniteTransition.animateFloat(
@@ -580,7 +580,7 @@ private fun AcceptRejectToolbar(
     val badgeColor = when {
         energyRemaining <= 0   -> Color(0xFFEF4444)  // 🔴 Out of energy
         energyRemaining < 500  -> Color(0xFFF59E0B)  // 🟡 Warning threshold
-        else                  -> EmeraldGreen        // 🟢 Healthy
+        else                  -> SynapseSuccess      // 🟢 Healthy
     }
 
     Row(
@@ -1045,7 +1045,7 @@ private fun BottomRow(
             Icon(
                 Icons.Rounded.KeyboardReturn,
                 contentDescription = "Return",
-                tint = Color.White,
+                tint = theme.keyboardBg, // contrast against the solid (primary) enter key
                 modifier = Modifier.size(18.dp)
             )
         }
@@ -2308,9 +2308,9 @@ private fun ToolManagerPanel(
     val theme = LocalKeyboardTheme.current
     val panelHeight = (220 * state.keyHeightScale).dp
 
-    // Gold colour for this panel's selected state
-    val goldColor    = Color(0xFFD97706)
-    val goldBrush    = Brush.linearGradient(listOf(Color(0xFFF59E0B), Color(0xFFD97706)))
+    // Monochrome accent for this panel's selected state
+    val goldColor    = theme.accentGradientStart
+    val goldBrush    = Brush.linearGradient(listOf(theme.accentGradientStart, theme.accentGradientStart))
 
     // Local mutable selection mirroring state.visibleTools
     var selected by remember { mutableStateOf(state.visibleTools.toMutableList()) }
@@ -2367,7 +2367,7 @@ private fun ToolManagerPanel(
             ) {
                 Text(
                     text = "Done ✓",
-                    color = Color.White,
+                    color = theme.keyboardBg, // contrast against the solid (primary) pill
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold
                 )

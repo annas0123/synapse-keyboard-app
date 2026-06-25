@@ -2,74 +2,81 @@ package com.smafty.synapsekeyboard.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// ─── Premium Black Theme Colors ──────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// MONOCHROME PALETTE — single source of truth.
+// Only 3 colors exist: Black, White, and the grays between them.
+// Zero accent colors. Status colors appear ONLY on tiny indicators.
+// Change a value here → the entire app updates (everything reads via ThemeManager).
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ─── Pure Black Theme (OLED) ─────────────────────────────────────────────────
 object PremiumBlackColors {
-    val Background       = Color(0xFF0A0A0F)
-    val Surface          = Color(0xFF141420)
-    val SurfaceElevated  = Color(0xFF1C1C2A)
-    val Border           = Color(0xFF2A2A3A)
-    val BorderActive     = Color(0xFF7C5CFC)
+    val Background       = Color(0xFF000000) // pure OLED black
+    val Surface          = Color(0xFF111111) // cards
+    val SurfaceElevated  = Color(0xFF1A1A1A) // elevated surface
+    val Border           = Color(0xFF222222)
+    val BorderActive     = Color(0xFFFFFFFF) // selection border = primary (white)
 
-    val Primary          = Color(0xFF7C5CFC)
-    val PrimaryGradientEnd = Color(0xFFA78BFA)
-    val PrimaryMuted     = Color(0x337C5CFC) // ~20% opacity
+    val Primary          = Color(0xFFFFFFFF) // buttons / selections
+    val PrimaryGradientEnd = Color(0xFFFFFFFF) // solid — no gradient
+    val PrimaryMuted     = Color(0x1AFFFFFF) // rgba(255,255,255,0.10)
 
-    val TextPrimary      = Color(0xFFF0F0F5)
-    val TextSecondary    = Color(0xFF8888A0)
-    val TextTertiary     = Color(0xFF555570)
+    val TextPrimary      = Color(0xFFFFFFFF)
+    val TextSecondary    = Color(0xFF888888)
+    val TextTertiary     = Color(0xFF555555)
 
-    val Accent           = Color(0xFFA78BFA)
-    val Success          = Color(0xFF34D399)
-    val Error            = Color(0xFFF87171)
-    val Warning          = Color(0xFFFBBF24)
+    val Accent           = Color(0xFFFFFFFF) // no accent color → maps to primary
+    val Success          = Color(0xFF22C55E) // tiny indicators only
+    val Error            = Color(0xFFEF4444) // tiny indicators / destructive only
+    val Warning          = Color(0xFFF59E0B) // tiny indicators only
 
-    // Keyboard-specific
-    val KeyboardBg       = Color(0xFF0A0A0F)
-    val KeyFace          = Color(0xFF1A1A28)
-    val KeyFacePressed   = Color(0xFF2A2A3A)
-    val KeyText          = Color(0xFFE0E0EA)
-    val KeyBorder        = Color(0xFF252535)
-    val ToolbarBg        = Color(0xFF0E0E18)
+    // Keyboard-specific — monochrome
+    val KeyboardBg       = Color(0xFF000000)
+    val KeyFace          = Color(0xFF1A1A1A)
+    val KeyFacePressed   = Color(0xFF333333)
+    val KeyText          = Color(0xFFFFFFFF)
+    val KeyBorder        = Color(0xFF222222)
+    val ToolbarBg        = Color(0xFF000000)
 
     // Special keys
-    val SpecialKeyBg     = Color(0xFF1C1C2A)
-    val SpecialKeyIcon   = Color(0xFF8888A0)
-    val ActionKeyBg      = Color(0xFF7C5CFC)
+    val SpecialKeyBg     = Color(0xFF111111)
+    val SpecialKeyIcon   = Color(0xFF888888)
+    val ActionKeyBg      = Color(0xFFFFFFFF) // primary-filled action key (icon = background)
 }
 
-// ─── Premium White Theme Colors ──────────────────────────────────────────────
+// ─── Pure White Theme (Clean) ────────────────────────────────────────────────
 object PremiumWhiteColors {
-    val Background       = Color(0xFFFAFAFA)
-    val Surface          = Color(0xFFFFFFFF)
-    val SurfaceElevated  = Color(0xFFFFFFFF)
-    val Border           = Color(0xFFE8E8F0)
-    val BorderActive     = Color(0xFF7C5CFC)
+    val Background       = Color(0xFFFFFFFF) // pure white
+    val Surface          = Color(0xFFF5F5F5) // cards
+    val SurfaceElevated  = Color(0xFFFAFAFA) // elevated surface
+    val Border           = Color(0xFFE5E5E5)
+    val BorderActive     = Color(0xFF000000) // selection border = primary (black)
 
-    val Primary          = Color(0xFF6C47FF)
-    val PrimaryGradientEnd = Color(0xFF8B6FFF)
-    val PrimaryMuted     = Color(0x226C47FF) // ~15% opacity
+    val Primary          = Color(0xFF000000) // buttons / selections
+    val PrimaryGradientEnd = Color(0xFF000000) // solid — no gradient
+    val PrimaryMuted     = Color(0x14000000) // rgba(0,0,0,0.08)
 
-    val TextPrimary      = Color(0xFF1A1A2E)
-    val TextSecondary    = Color(0xFF6B6B80)
-    val TextTertiary     = Color(0xFF9898B0)
+    val TextPrimary      = Color(0xFF000000)
+    val TextSecondary    = Color(0xFF666666)
+    val TextTertiary     = Color(0xFF999999)
 
-    val Accent           = Color(0xFF6C47FF)
-    val Success          = Color(0xFF10B981)
-    val Error            = Color(0xFFEF4444)
-    val Warning          = Color(0xFFF59E0B)
+    val Accent           = Color(0xFF000000) // no accent color → maps to primary
+    val Success          = Color(0xFF22C55E) // tiny indicators only
+    val Error            = Color(0xFFEF4444) // tiny indicators / destructive only
+    val Warning          = Color(0xFFF59E0B) // tiny indicators only
 
-    // Keyboard-specific
-    val KeyboardBg       = Color(0xFFF2F2F7)
+    // Keyboard-specific — monochrome
+    val KeyboardBg       = Color(0xFFF5F5F5)
     val KeyFace          = Color(0xFFFFFFFF)
-    val KeyFacePressed   = Color(0xFFE8E8F0)
-    val KeyText          = Color(0xFF1A1A2E)
-    val KeyBorder        = Color(0xFFDCDCE5)
-    val ToolbarBg        = Color(0xFFFAFAFA)
+    val KeyFacePressed   = Color(0xFFE5E5E5)
+    val KeyText          = Color(0xFF000000)
+    val KeyBorder        = Color(0xFFE5E5E5)
+    val ToolbarBg        = Color(0xFFFFFFFF)
 
     // Special keys
-    val SpecialKeyBg     = Color(0xFFF0F0F5)
-    val SpecialKeyIcon   = Color(0xFF6B6B80)
-    val ActionKeyBg      = Color(0xFF7C5CFC)
+    val SpecialKeyBg     = Color(0xFFEEEEEE)
+    val SpecialKeyIcon   = Color(0xFF666666)
+    val ActionKeyBg      = Color(0xFF000000) // primary-filled action key (icon = background)
 }
 
 // ─── Dynamic palette — all tokens delegate to the active ThemeManager preset ─
@@ -100,7 +107,7 @@ val DeepSlate: Color get() = ThemeManager.currentTheme.background
 val PitchBlack: Color get() = ThemeManager.currentTheme.surface
 val ElectricPurple: Color get() = ThemeManager.currentTheme.primary
 val EmeraldGreen: Color get() = ThemeManager.currentTheme.accent   // secondary → accent
-val CrispWhite = Color(0xFFF0F0F5) // Near-white, NOT pure white (per spec)
+val CrispWhite: Color get() = ThemeManager.currentTheme.textPrimary // theme-aware (white on black / black on white)
 val MutedGrey: Color get() = ThemeManager.currentTheme.textSecondary
 // GlassmorphismColor kept as alias → maps to Surface (solid, no blur)
 val GlassmorphismColor: Color get() = ThemeManager.currentTheme.surface

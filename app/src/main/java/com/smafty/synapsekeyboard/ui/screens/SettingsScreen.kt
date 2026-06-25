@@ -65,6 +65,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -76,16 +77,35 @@ import com.smafty.synapsekeyboard.ui.keyboard.KeySoundPreset
 import com.smafty.synapsekeyboard.ui.keyboard.HapticEngine
 import kotlinx.coroutines.launch
 
-// ── Premium Minimal design tokens ────────────────────────────────────────────
-private val SS_Bg          = Color(0xFF0A0A0F)
-private val SS_Surface     = Color(0xFF141420)
-private val SS_SurfaceHigh = Color(0xFF1C1C2A)
-private val SS_Border      = Color(0xFF2A2A3A)
-private val SS_Violet      = Color(0xFF7C5CFC)
-private val SS_Text        = Color(0xFFF0F0F5)
-private val SS_Muted       = Color(0xFF8888A0)
-private val SS_Error       = Color(0xFFF87171)
-private val EmeraldGreen   = Color(0xFF10B981)
+// ── Monochrome design tokens — every value resolves to ThemeManager (single source of truth).
+// No hardcoded colors: each property re-reads the active theme so theme switches apply instantly.
+private val SS_Bg: Color          get() = ThemeManager.currentTheme.background
+private val SS_Surface: Color     get() = ThemeManager.currentTheme.surface
+private val SS_SurfaceHigh: Color get() = ThemeManager.currentTheme.surfaceElevated
+private val SS_Border: Color      get() = ThemeManager.currentTheme.border
+private val SS_Primary: Color     get() = ThemeManager.currentTheme.primary
+private val SS_OnPrimary: Color   get() = ThemeManager.currentTheme.background // text/icon on a primary fill
+private val SS_Text: Color        get() = ThemeManager.currentTheme.textPrimary
+private val SS_Muted: Color       get() = ThemeManager.currentTheme.textSecondary
+private val SS_Error: Color       get() = ThemeManager.currentTheme.error
+
+// Opens the marketing/store website in a Chrome Custom Tab (falls back to the
+// system browser automatically when Custom Tabs is unavailable).
+private fun openWebsite(context: android.content.Context, url: String = "https://synapse-keyboard.vercel.app/") {
+    try {
+        val intent = CustomTabsIntent.Builder()
+            .setShowTitle(true)
+            .build()
+        intent.intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        intent.launchUrl(context, Uri.parse(url))
+    } catch (e: Exception) {
+        try {
+            val fallback = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(fallback)
+        } catch (_: Exception) { /* no browser available */ }
+    }
+}
 
 // ---------------------------------------------------------------------------
 // Settings Screen — UI layer upgraded with premium theme design, backend logic preserved.
@@ -106,7 +126,7 @@ fun SettingsScreen(
     var showThemeDialog   by remember { mutableStateOf(false) }
 
     var selectedModelKey by remember {
-        mutableStateOf(prefs.getString("synapse_selected_model", SynapseModel.S1.key) ?: SynapseModel.S1.key)
+        mutableStateOf(prefs.getString("synapse_selected_model", SynapseModel.DEEPSEEK.key) ?: SynapseModel.DEEPSEEK.key)
     }
 
     val userName  = AuthManager.currentUserName  ?: "Guest"
@@ -131,18 +151,6 @@ fun SettingsScreen(
             enter   = fadeIn(tween(400)) + slideInVertically(tween(400)) { -24 }
         ) {
             Column {
-                Box(
-                    modifier = Modifier
-                        .width(36.dp)
-                        .height(3.dp)
-                        .clip(RoundedCornerShape(2.dp))
-                        .background(
-                            Brush.horizontalGradient(
-                                listOf(SS_Violet, SS_Violet.copy(alpha = 0.0f))
-                            )
-                        )
-                )
-                Spacer(Modifier.height(8.dp))
                 Text(
                     text       = "Settings",
                     style      = MaterialTheme.typography.headlineMedium,
@@ -175,22 +183,14 @@ fun SettingsScreen(
                     Box(
                         modifier = Modifier
                             .size(52.dp)
-                            .shadow(8.dp, CircleShape, spotColor = SS_Violet.copy(alpha = 0.35f))
                             .clip(CircleShape)
-                            .background(
-                                Brush.radialGradient(
-                                    colors = listOf(
-                                        SS_Violet.copy(alpha = 0.22f),
-                                        SS_Violet.copy(alpha = 0.06f)
-                                    )
-                                )
-                            )
-                            .border(1.5.dp, SS_Violet.copy(alpha = 0.35f), CircleShape),
+                            .background(SS_Primary)
+                            .border(1.dp, SS_Border, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text       = userName.firstOrNull()?.uppercaseChar()?.toString() ?: "G",
-                            color      = Color.White,
+                            color      = SS_OnPrimary,
                             fontWeight = FontWeight.ExtraBold,
                             fontSize   = 20.sp
                         )
@@ -214,7 +214,7 @@ fun SettingsScreen(
                 SettingsDivider()
                 ActionSettingsRow(
                     icon        = Icons.Rounded.ExitToApp,
-                    iconTint    = Color(0xFFEF4444),
+                    iconTint    = SS_Error,
                     label       = "Sign Out",
                     description = "Sign out of your Synapse account",
                     onClick     = { showSignOutDialog = true }
@@ -232,7 +232,7 @@ fun SettingsScreen(
             SettingsSection(title = "Appearance") {
                 ActionSettingsRow(
                     icon        = Icons.Rounded.Settings,
-                    iconTint    = SS_Violet,
+                    iconTint    = SS_Muted,
                     label       = "App Theme Preset",
                     description = "Selected: ${ThemeManager.currentTheme.displayName}",
                     onClick     = { showThemeDialog = true }
@@ -240,7 +240,7 @@ fun SettingsScreen(
                 SettingsDivider()
                 ActionSettingsRow(
                     icon        = Icons.Rounded.Info,
-                    iconTint    = Color(0xFF06B6D4),
+                    iconTint    = SS_Muted,
                     label       = "Key Sounds",
                     description = if (soundEnabled) "Preset: ${KeySoundEngine.activePreset.displayName}" else "Tap to configure",
                     onClick     = { onNavigateToKeySounds?.invoke() }
@@ -248,7 +248,7 @@ fun SettingsScreen(
                 SettingsDivider()
                 ToggleSettingsRow(
                     icon        = Icons.Rounded.Vibration,
-                    iconTint    = SS_Violet,
+                    iconTint    = SS_Muted,
                     label       = "Vibration on Key Tap",
                     description = "Vibrate when you press a key.",
                     checked     = vibrationEnabled,
@@ -274,25 +274,17 @@ fun SettingsScreen(
                 ) {
                     SynapseModel.values().forEach { model ->
                         val isSelected = model.key == selectedModelKey
-                        // Cost badge color based on factor
-                        val costBadgeColor = when {
-                            model.factor < 1.0f  -> Color(0xFF22C55E) // Green — cheap
-                            model.factor <= 1.0f -> Color(0xFF06B6D4) // Cyan — baseline
-                            model.factor <= 5.0f -> Color(0xFFF59E0B) // Amber — expensive
-                            else                 -> Color(0xFFEF4444) // Red — very expensive
-                        }
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(14.dp))
                                 .border(
                                     width = if (isSelected) 1.5.dp else 1.dp,
-                                    brush = if (isSelected) Brush.linearGradient(listOf(SS_Violet, Color(0xFF06B6D4)))
-                                            else Brush.linearGradient(listOf(SS_Border, SS_Border)),
+                                    color = if (isSelected) SS_Primary else SS_Border,
                                     shape = RoundedCornerShape(14.dp)
                                 )
                                 .background(
-                                    if (isSelected) SS_Violet.copy(alpha = 0.10f)
+                                    if (isSelected) ThemeManager.currentTheme.primaryMuted
                                     else SS_Surface
                                 )
                                 .clickable {
@@ -310,32 +302,17 @@ fun SettingsScreen(
                                         fontWeight = FontWeight.Bold,
                                         fontSize   = 15.sp
                                     )
-                                    // Cost factor badge — always shown next to model name
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Box(
-                                        modifier = Modifier
-                                            .background(costBadgeColor.copy(alpha = 0.15f), RoundedCornerShape(6.dp))
-                                            .border(1.dp, costBadgeColor.copy(alpha = 0.3f), RoundedCornerShape(6.dp))
-                                            .padding(horizontal = 6.dp, vertical = 2.dp)
-                                    ) {
-                                        Text(
-                                            text = "${model.factor}×",
-                                            color = costBadgeColor,
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 9.sp
-                                        )
-                                    }
                                     if (model.isRecommended) {
-                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Spacer(modifier = Modifier.width(8.dp))
                                         Box(
                                             modifier = Modifier
-                                                .background(EmeraldGreen.copy(alpha = 0.15f), RoundedCornerShape(6.dp))
-                                                .border(1.dp, EmeraldGreen.copy(alpha = 0.3f), RoundedCornerShape(6.dp))
+                                                .background(SS_SurfaceHigh, RoundedCornerShape(6.dp))
+                                                .border(1.dp, SS_Border, RoundedCornerShape(6.dp))
                                                 .padding(horizontal = 6.dp, vertical = 2.dp)
                                         ) {
                                             Text(
                                                 text = "RECOMMENDED",
-                                                color = EmeraldGreen,
+                                                color = SS_Muted,
                                                 fontWeight = FontWeight.Bold,
                                                 fontSize = 9.sp
                                             )
@@ -343,20 +320,19 @@ fun SettingsScreen(
                                     }
                                 }
                                 Spacer(modifier = Modifier.height(4.dp))
-                                // Description + cost label on the same line
                                 Text(
-                                    text  = "${model.description}  ${model.costLabel}",
-                                    color = SS_Muted.copy(alpha = 0.7f),
+                                    text     = model.description,
+                                    color    = SS_Muted.copy(alpha = 0.7f),
                                     fontSize = 12.sp
                                 )
                             }
-                            // Radio indicator
+                            // Radio indicator — filled primary circle when selected
                             Box(
                                 modifier = Modifier
                                     .size(20.dp)
                                     .clip(CircleShape)
-                                    .background(if (isSelected) SS_Violet else Color.Transparent)
-                                    .border(2.dp, if (isSelected) SS_Violet else SS_Muted.copy(alpha = 0.4f), CircleShape),
+                                    .background(if (isSelected) SS_Primary else Color.Transparent)
+                                    .border(2.dp, if (isSelected) SS_Primary else SS_Muted.copy(alpha = 0.4f), CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
                                 if (isSelected) {
@@ -364,7 +340,7 @@ fun SettingsScreen(
                                         modifier = Modifier
                                             .size(8.dp)
                                             .clip(CircleShape)
-                                            .background(Color.White)
+                                            .background(SS_OnPrimary)
                                     )
                                 }
                             }
@@ -384,7 +360,7 @@ fun SettingsScreen(
             SettingsSection(title = "Keyboard Management") {
                 ActionSettingsRow(
                     icon        = Icons.Rounded.Settings,
-                    iconTint    = SS_Violet,
+                    iconTint    = SS_Muted,
                     label       = "Test Keyboard",
                     description = "Open test notepad to try your keyboard",
                     onClick     = { onNavigateToKeyboardTest?.invoke() }
@@ -392,7 +368,7 @@ fun SettingsScreen(
                 SettingsDivider()
                 ActionSettingsRow(
                     icon        = Icons.Rounded.Settings,
-                    iconTint    = Color(0xFF06B6D4),
+                    iconTint    = SS_Muted,
                     label       = "Keyboard Settings",
                     description = "Manage keyboard preferences",
                     onClick     = {
@@ -408,7 +384,7 @@ fun SettingsScreen(
                 SettingsDivider()
                 ActionSettingsRow(
                     icon        = Icons.Rounded.Refresh,
-                    iconTint    = EmeraldGreen,
+                    iconTint    = SS_Muted,
                     label       = "Switch Keyboard",
                     description = "Change default keyboard",
                     onClick     = {
@@ -433,10 +409,36 @@ fun SettingsScreen(
             SettingsSection(title = "Advanced") {
                 ActionSettingsRow(
                     icon        = Icons.Rounded.Delete,
-                    iconTint    = Color(0xFFEF4444),
+                    iconTint    = SS_Error,
                     label       = "Clear AI Cache",
                     description = "Delete locally cached AI responses",
                     onClick     = { /* Clean action */ }
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // ── Section: Energy & Subscription ────────────────────────────────────
+        AnimatedVisibility(
+            visible = visible,
+            enter   = fadeIn(tween(500, 240)) + slideInVertically(tween(500, 240)) { 40 }
+        ) {
+            SettingsSection(title = "Energy & Subscription") {
+                ActionSettingsRow(
+                    icon        = Icons.Rounded.Bolt,
+                    iconTint    = SS_Muted,
+                    label       = "Buy Energy",
+                    description = "Visit our website to purchase energy credits",
+                    onClick     = { openWebsite(context) }
+                )
+                SettingsDivider()
+                ActionSettingsRow(
+                    icon        = Icons.Rounded.Payment,
+                    iconTint    = SS_Muted,
+                    label       = "Manage Subscription",
+                    description = "View plans & manage your subscription online",
+                    onClick     = { openWebsite(context) }
                 )
             }
         }
@@ -451,7 +453,7 @@ fun SettingsScreen(
             SettingsSection(title = "Help & Support") {
                 ActionSettingsRow(
                     icon        = Icons.Rounded.Info,
-                    iconTint    = SS_Violet,
+                    iconTint    = SS_Muted,
                     label       = "How to Use",
                     description = "Re-open the onboarding tutorial",
                     onClick     = { /* Tutorial trigger */ }
@@ -459,7 +461,7 @@ fun SettingsScreen(
                 SettingsDivider()
                 ActionSettingsRow(
                     icon        = Icons.Rounded.Email,
-                    iconTint    = Color(0xFF06B6D4),
+                    iconTint    = SS_Muted,
                     label       = "Contact Support",
                     description = "Send us an email",
                     onClick     = {
@@ -540,7 +542,7 @@ fun SettingsScreen(
                 ) {
                     Text(
                         text       = "Sign Out",
-                        color      = Color(0xFFEF4444),
+                        color      = SS_Error,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -580,12 +582,11 @@ fun SettingsScreen(
                                 .clip(RoundedCornerShape(14.dp))
                                 .border(
                                     width = if (isSelected) 1.5.dp else 1.dp,
-                                    brush = if (isSelected) Brush.linearGradient(listOf(preset.primary, preset.secondary))
-                                            else Brush.linearGradient(listOf(SS_Border, SS_Border)),
+                                    color = if (isSelected) SS_Primary else SS_Border,
                                     shape = RoundedCornerShape(14.dp)
                                 )
                                 .background(
-                                    if (isSelected) preset.primary.copy(alpha = 0.10f)
+                                    if (isSelected) ThemeManager.currentTheme.primaryMuted
                                     else SS_Surface
                                 )
                                 .clickable {
@@ -611,25 +612,22 @@ fun SettingsScreen(
                                     modifier = Modifier
                                         .size(14.dp)
                                         .clip(CircleShape)
-                                        .background(preset.primary)
-                                )
-                                Box(
-                                    modifier = Modifier
-                                        .size(14.dp)
-                                        .clip(CircleShape)
                                         .background(preset.background)
-                                )
-                                Box(
-                                    modifier = Modifier
-                                        .size(14.dp)
-                                        .clip(CircleShape)
-                                        .background(preset.secondary)
+                                        .border(1.dp, preset.border, CircleShape)
                                 )
                                 Box(
                                     modifier = Modifier
                                         .size(14.dp)
                                         .clip(CircleShape)
                                         .background(preset.surface)
+                                        .border(1.dp, preset.border, CircleShape)
+                                )
+                                Box(
+                                    modifier = Modifier
+                                        .size(14.dp)
+                                        .clip(CircleShape)
+                                        .background(preset.primary)
+                                        .border(1.dp, preset.border, CircleShape)
                                 )
                             }
                         }
@@ -638,7 +636,7 @@ fun SettingsScreen(
             },
             confirmButton = {
                 TextButton(onClick = { showThemeDialog = false }) {
-                    Text(text = "Done", color = SS_Violet, fontWeight = FontWeight.Bold)
+                    Text(text = "Done", color = SS_Text, fontWeight = FontWeight.Bold)
                 }
             },
             containerColor = SS_Surface,
@@ -657,35 +655,17 @@ private fun SettingsSection(
     content: @Composable ColumnScope.() -> Unit
 ) {
     Column(modifier = Modifier.padding(bottom = 6.dp)) {
-        Row(
-            modifier          = Modifier.padding(start = 4.dp, bottom = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .width(3.dp)
-                    .height(11.dp)
-                    .clip(RoundedCornerShape(2.dp))
-                    .background(SS_Violet)
-            )
-            Spacer(modifier = Modifier.width(6.dp))
-            Text(
-                text          = title.uppercase(),
-                style         = MaterialTheme.typography.labelSmall,
-                color         = SS_Muted.copy(alpha = 0.55f),
-                fontWeight    = FontWeight.Bold,
-                letterSpacing = 1.2.sp
-            )
-        }
+        Text(
+            text          = title.uppercase(),
+            style         = MaterialTheme.typography.labelSmall,
+            color         = SS_Muted,
+            fontWeight    = FontWeight.Bold,
+            letterSpacing = 1.2.sp,
+            modifier      = Modifier.padding(start = 4.dp, bottom = 8.dp)
+        )
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .shadow(
-                    elevation = 4.dp,
-                    shape = RoundedCornerShape(22.dp),
-                    spotColor = SS_Violet.copy(alpha = 0.16f),
-                    ambientColor = SS_Violet.copy(alpha = 0.04f)
-                )
                 .clip(RoundedCornerShape(22.dp))
                 .background(SS_Surface)
                 .border(
@@ -717,7 +697,7 @@ private fun ActionSettingsRow(
             .clip(RoundedCornerShape(12.dp))
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
-                indication        = androidx.compose.material.ripple.rememberRipple(color = SS_Violet.copy(0.15f)),
+                indication        = androidx.compose.material.ripple.rememberRipple(color = SS_Primary.copy(0.12f)),
                 onClick           = onClick
             )
             .padding(vertical = 14.dp),
@@ -727,10 +707,8 @@ private fun ActionSettingsRow(
             modifier = Modifier
                 .size(38.dp)
                 .clip(RoundedCornerShape(11.dp))
-                .background(
-                    Brush.radialGradient(listOf(iconTint.copy(alpha = 0.20f), iconTint.copy(alpha = 0.05f)))
-                )
-                .border(1.dp, iconTint.copy(alpha = 0.22f), RoundedCornerShape(11.dp)),
+                .background(SS_SurfaceHigh)
+                .border(1.dp, SS_Border, RoundedCornerShape(11.dp)),
             contentAlignment = Alignment.Center
         ) {
             Icon(imageVector = icon, contentDescription = null, tint = iconTint, modifier = Modifier.size(18.dp))
@@ -739,12 +717,12 @@ private fun ActionSettingsRow(
         Column(modifier = Modifier.weight(1f)) {
             Text(label, color = SS_Text, fontWeight = FontWeight.Bold, fontSize = 14.sp)
             Spacer(modifier = Modifier.height(2.dp))
-            Text(description, color = SS_Muted.copy(alpha = 0.65f), fontSize = 12.sp)
+            Text(description, color = SS_Muted, fontSize = 12.sp)
         }
         Icon(
             imageVector        = Icons.Rounded.KeyboardArrowRight,
             contentDescription = null,
-            tint               = SS_Muted.copy(alpha = 0.35f),
+            tint               = SS_Muted.copy(alpha = 0.5f),
             modifier           = Modifier.size(20.dp)
         )
     }
@@ -773,10 +751,8 @@ private fun ToggleSettingsRow(
             modifier = Modifier
                 .size(38.dp)
                 .clip(RoundedCornerShape(11.dp))
-                .background(
-                    Brush.radialGradient(listOf(iconTint.copy(alpha = 0.20f), iconTint.copy(alpha = 0.05f)))
-                )
-                .border(1.dp, iconTint.copy(alpha = 0.22f), RoundedCornerShape(11.dp)),
+                .background(SS_SurfaceHigh)
+                .border(1.dp, SS_Border, RoundedCornerShape(11.dp)),
             contentAlignment = Alignment.Center
         ) {
             Icon(imageVector = icon, contentDescription = null, tint = iconTint, modifier = Modifier.size(18.dp))
@@ -785,16 +761,18 @@ private fun ToggleSettingsRow(
         Column(modifier = Modifier.weight(1f)) {
             Text(label, color = SS_Text, fontWeight = FontWeight.Bold, fontSize = 14.sp)
             Spacer(modifier = Modifier.height(2.dp))
-            Text(description, color = SS_Muted.copy(alpha = 0.65f), fontSize = 12.sp)
+            Text(description, color = SS_Muted, fontSize = 12.sp)
         }
         Switch(
             checked          = checked,
             onCheckedChange  = onCheckedChange,
             colors = SwitchDefaults.colors(
-                checkedThumbColor    = Color.White,
-                checkedTrackColor    = SS_Violet,
+                checkedThumbColor    = SS_OnPrimary,
+                checkedTrackColor    = SS_Primary,
+                checkedBorderColor   = SS_Primary,
                 uncheckedThumbColor  = SS_Muted,
-                uncheckedTrackColor  = SS_Muted.copy(alpha = 0.18f)
+                uncheckedTrackColor  = SS_SurfaceHigh,
+                uncheckedBorderColor = SS_Border
             )
         )
     }
@@ -809,6 +787,6 @@ private fun SettingsDivider() {
         modifier = Modifier
             .fillMaxWidth()
             .height(1.dp)
-            .background(SS_Muted.copy(alpha = 0.06f))
+            .background(SS_Border)
     )
 }

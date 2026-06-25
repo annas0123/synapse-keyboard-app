@@ -86,7 +86,7 @@ class KeyboardUiState {
     // Active AI Engine — loaded from SharedPreferences on keyboard open.
     // Defaults to S1. UI shows only branded names.
     // ---------------------------------------------------------------------------
-    var selectedModel by mutableStateOf(SynapseModel.S1)
+    var selectedModel by mutableStateOf(SynapseModel.DEEPSEEK)
 
     // ---------------------------------------------------------------------------
     // Language — English-only. Translation to other languages happens via AI prompts.

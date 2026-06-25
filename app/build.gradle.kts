@@ -84,6 +84,7 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.navigation:navigation-compose:2.7.6")
+    implementation("androidx.browser:browser:1.7.0") // Chrome Custom Tabs (Buy Energy / website links)
     implementation("com.airbnb.android:lottie-compose:6.3.0")
 
     // OkHttp networking

@@ -34,15 +34,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.smafty.synapsekeyboard.auth.AuthManager
 import com.smafty.synapsekeyboard.auth.AuthResult
+import com.smafty.synapsekeyboard.ui.theme.ThemeManager
 import kotlinx.coroutines.launch
 
-// ── Premium Minimal design tokens ─────────────────────────────────────────────
-private val LG_Bg          = Color(0xFF0A0A0F)
-private val LG_Surface     = Color(0xFF141420)
-private val LG_Border      = Color(0xFF2A2A3A)
-private val LG_Violet      = Color(0xFF7C5CFC)
-private val LG_TextPrimary = Color(0xFFF0F0F5)
-private val LG_TextSecond  = Color(0xFF8888A0)
+// ── Monochrome design tokens — all values resolve to ThemeManager (single source of truth).
+private val LG_Bg: Color          get() = ThemeManager.currentTheme.background
+private val LG_Surface: Color     get() = ThemeManager.currentTheme.surface
+private val LG_SurfaceHigh: Color get() = ThemeManager.currentTheme.surfaceElevated
+private val LG_Border: Color      get() = ThemeManager.currentTheme.border
+private val LG_Primary: Color     get() = ThemeManager.currentTheme.primary
+private val LG_OnPrimary: Color   get() = ThemeManager.currentTheme.background
+private val LG_TextPrimary: Color get() = ThemeManager.currentTheme.textPrimary
+private val LG_TextSecond: Color  get() = ThemeManager.currentTheme.textSecondary
 
 /**
  * LoginScreen — Phase 3 redesign.
@@ -102,7 +105,7 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                 Icon(
                     imageVector        = Icons.Rounded.AutoAwesome,
                     contentDescription = "Synapse AI",
-                    tint               = LG_Violet,
+                    tint               = LG_TextPrimary,
                     modifier           = Modifier.size(40.dp)
                 )
             }
@@ -144,12 +147,12 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                     modifier            = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    ValuePropRow(Icons.Rounded.Bolt,        Color(0xFFFBBF24), "AI writing assistant built into every keyboard")
+                    ValuePropRow(Icons.Rounded.Bolt,        "AI writing assistant built into every keyboard")
                     // Subtle divider
                     Box(modifier = Modifier.fillMaxWidth().height(0.5.dp).background(LG_Border))
-                    ValuePropRow(Icons.Rounded.Lock,         Color(0xFF34D399), "Your data stays secure with Google Auth")
+                    ValuePropRow(Icons.Rounded.Lock,         "Your data stays secure with Google Auth")
                     Box(modifier = Modifier.fillMaxWidth().height(0.5.dp).background(LG_Border))
-                    ValuePropRow(Icons.Rounded.CardGiftcard, LG_Violet,         "Start free — 20,000 energy credits on us")
+                    ValuePropRow(Icons.Rounded.CardGiftcard, "Start free — 20,000 energy credits on us")
                 }
             }
 
@@ -186,23 +189,23 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                         shape    = RoundedCornerShape(12.dp),   // 12dp per spec
                         colors   = ButtonDefaults.buttonColors(
-                            containerColor = Color.White,
-                            contentColor   = Color(0xFF1F1F1F)
+                            containerColor = LG_Primary,
+                            contentColor   = LG_OnPrimary
                         ),
                         enabled  = !isLoading
                     ) {
                         if (isLoading) {
                             CircularProgressIndicator(
                                 modifier    = Modifier.size(20.dp),
-                                color       = LG_Violet,
+                                color       = LG_OnPrimary,
                                 strokeWidth = 2.5.dp
                             )
                             Spacer(modifier = Modifier.width(12.dp))
-                            Text("Signing in…", fontWeight = FontWeight.Medium, fontSize = 15.sp, color = Color(0xFF444444))
+                            Text("Signing in…", fontWeight = FontWeight.Medium, fontSize = 15.sp, color = LG_OnPrimary)
                         } else {
                             GoogleGLogo()
                             Spacer(modifier = Modifier.width(12.dp))
-                            Text("Continue with Google", fontWeight = FontWeight.Medium, fontSize = 15.sp, color = Color(0xFF1F1F1F))
+                            Text("Continue with Google", fontWeight = FontWeight.Medium, fontSize = 15.sp, color = LG_OnPrimary)
                         }
                     }
 
@@ -231,7 +234,7 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                 snackbarData   = data,
                 containerColor = LG_Surface,
                 contentColor   = LG_TextPrimary,
-                actionColor    = LG_Violet,
+                actionColor    = LG_Primary,
                 shape          = RoundedCornerShape(12.dp)
             )
         }
@@ -242,7 +245,6 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
 @Composable
 private fun ValuePropRow(
     icon: ImageVector,
-    tint: Color,
     text: String
 ) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
@@ -250,10 +252,11 @@ private fun ValuePropRow(
             modifier = Modifier
                 .size(36.dp)
                 .clip(RoundedCornerShape(10.dp))
-                .background(tint.copy(alpha = 0.12f)),
+                .background(LG_SurfaceHigh)
+                .border(1.dp, LG_Border, RoundedCornerShape(10.dp)),
             contentAlignment = Alignment.Center
         ) {
-            Icon(icon, null, tint = tint, modifier = Modifier.size(18.dp))
+            Icon(icon, null, tint = LG_TextSecond, modifier = Modifier.size(18.dp))
         }
         Spacer(modifier = Modifier.width(14.dp))
         Text(

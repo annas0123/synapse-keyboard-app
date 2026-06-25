@@ -433,7 +433,7 @@ class SynapseInputMethodService :
         kbState.visibleTools = loadVisibleTools(prefs)
 
         // Load persisted AI engine selection — defaults to S1 if not yet set
-        val modelKey = prefs.getString("synapse_selected_model", SynapseModel.S1.key)
+        val modelKey = prefs.getString("synapse_selected_model", SynapseModel.DEEPSEEK.key)
         kbState.selectedModel = SynapseModel.fromKey(modelKey)
 
         // English-only keyboard — language pref is always "English"
@@ -700,11 +700,10 @@ class SynapseInputMethodService :
         }
 
         // Gate 2: Overflow abuse protection — estimate cost before sending
-        // Formula: chars ÷ 4 = approx prompt tokens → × 0.75 × factor = model-weighted energy
-        // Add 150 × factor output buffer (conservative estimate for typical keyboard AI output)
-        val modelFactor = kbState.selectedModel.factor
-        val estimatedInputEnergy = (textToProcess.length / 4f * 0.75f * modelFactor).toInt().coerceAtLeast(1)
-        val estimatedTotalCost   = estimatedInputEnergy + (150 * modelFactor).toInt()
+        // Formula: input_tokens × 0.75 + output_tokens × 0.75 = total energy
+        // Approx input tokens = chars ÷ 4; conservative output buffer = 150 tokens
+        val estimatedInputEnergy = (textToProcess.length / 4f * 0.75f).toInt().coerceAtLeast(1)
+        val estimatedTotalCost   = estimatedInputEnergy + (150 * 0.75f).toInt()
 
         if (estimatedTotalCost > remaining) {
             Toast.makeText(
@@ -775,30 +774,31 @@ class SynapseInputMethodService :
         // ── §5 Dynamic model routing based on user selection ─────────────────
         val activeModel   = kbState.selectedModel
         val primaryModel  = activeModel.primaryModelId
-        val fallbackModel = activeModel.fallbackModelId
 
         // ── §6 Budget-safe max_tokens calculation ─────────────────────────────
         // We cannot predict output length, so we LIMIT it via max_tokens.
         // This physically prevents the model from spending more energy than the user has.
         //
-        // Formula:
+        // Energy formula (same for all models):
+        //   Input Energy  = input_tokens  × 0.75
+        //   Output Energy = output_tokens × 0.75
+        //   Total Energy  = Input Energy  + Output Energy
+        //
         //   remaining energy         = R credits
-        //   estimated input energy   = (text chars ÷ 4 tokens) × 0.75 × factor [approx]
-        //   budget for output energy = R - inputEstimate  (floor 0)
-        //   max output tokens        = outputBudget ÷ (0.75 × factor)
-        //   hard cap                 = 8192 tokens (enough for full documents)
-        val modelFactor          = activeModel.factor
-        val remainingEnergy     = EnergyQuotaRepository.energyRemaining.value
-        val estimatedInputEnergy = ((text.length + prompt.length) / 4f * 0.75f * modelFactor).toInt().coerceAtLeast(1)
-        val outputEnergyBudget  = (remainingEnergy - estimatedInputEnergy).coerceAtLeast(10)
-        val maxOutputTokens     = (outputEnergyBudget / (0.75f * modelFactor)).toInt().coerceIn(10, 8192)
+        //   estimated input energy   = (text chars ÷ 4 tokens) × 0.75
+        //   budget for output energy = R - inputEstimate  (floor 10)
+        //   max output tokens        = outputBudget ÷ 0.75
+        //   hard cap                 = 8192 tokens
+        val remainingEnergy      = EnergyQuotaRepository.energyRemaining.value
+        val estimatedInputEnergy = ((text.length + prompt.length) / 4f * 0.75f).toInt().coerceAtLeast(1)
+        val outputEnergyBudget   = (remainingEnergy - estimatedInputEnergy).coerceAtLeast(10)
+        val maxOutputTokens      = (outputEnergyBudget / 0.75f).toInt().coerceIn(10, 8192)
 
         return try {
             callOpenRouter(text, prompt, primaryModel, maxOutputTokens)
         } catch (_: Exception) {
-            // Auto-route to fallback — silently, no UI noise
-            callOpenRouter(text, prompt, fallbackModel, maxOutputTokens)
-            // If fallback also fails, the exception propagates to the engine Error state
+            // No separate fallback — same model retried; engine will surface the error on second failure
+            callOpenRouter(text, prompt, primaryModel, maxOutputTokens)
         }
     }
 
@@ -867,14 +867,15 @@ class SynapseInputMethodService :
 
             val bodyJson = JSONObject(body)
 
-            // ── Token-accurate energy consumption (Blueprint 26 §C-7) ────────
-            // Energy = tokens × 0.75 × model factor (expensive models burn more)
-            val activeModelFactor = kbState.selectedModel.factor
-            val usage         = bodyJson.optJSONObject("usage")
-            val promptTokens  = usage?.optInt("prompt_tokens") ?: 0
-            val outputTokens  = usage?.optInt("completion_tokens") ?: 0
-            val inputWords    = (promptTokens  * 0.75f * activeModelFactor).roundToInt()
-            val outputWords   = (outputTokens  * 0.75f * activeModelFactor).roundToInt()
+            // ── Token-accurate energy consumption ───────────────────────────
+            // Input Energy  = input_tokens  × 0.75
+            // Output Energy = output_tokens × 0.75
+            // Total Energy  = Input Energy  + Output Energy
+            val usage        = bodyJson.optJSONObject("usage")
+            val promptTokens = usage?.optInt("prompt_tokens") ?: 0
+            val outputTokens = usage?.optInt("completion_tokens") ?: 0
+            val inputWords   = (promptTokens * 0.75f).roundToInt()
+            val outputWords  = (outputTokens * 0.75f).roundToInt()
 
             val choices = bodyJson.optJSONArray("choices")
                 ?: throw IOException("Invalid API response format")

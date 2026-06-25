@@ -1,6 +1,8 @@
 package com.smafty.synapsekeyboard.ui.keyboard
 
 import androidx.compose.ui.graphics.Color
+import com.smafty.synapsekeyboard.ui.theme.PremiumBlackColors
+import com.smafty.synapsekeyboard.ui.theme.PremiumWhiteColors
 
 /**
  * KeyboardTheme — 2-preset system aligned with the premium minimal redesign.
@@ -39,44 +41,45 @@ enum class KeyboardTheme(
         displayName      = "Premium Black",
         isDark           = true,
 
-        keyboardBg       = Color(0xFF0A0A0F),    // True near-black
-        keyFaceDefault   = Color(0xFF1A1A28),    // Default key face
-        keyFaceDark      = Color(0xFF1C1C2A),    // Special key (shift, backspace)
-        keyFacePressed   = Color(0xFF2A2A3A),    // Press state
-        keyText          = Color(0xFFE0E0EA),    // Key label text
-        keyTextMuted     = Color(0xFF8888A0),    // Muted: spacebar label, hints
+        keyboardBg       = PremiumBlackColors.KeyboardBg,     // Pure OLED black
+        keyFaceDefault   = PremiumBlackColors.KeyFace,        // Default key face
+        keyFaceDark      = PremiumBlackColors.SpecialKeyBg,   // Special key (shift, backspace)
+        keyFacePressed   = PremiumBlackColors.KeyFacePressed, // Press state
+        keyText          = PremiumBlackColors.KeyText,        // Key label text (white)
+        keyTextMuted     = PremiumBlackColors.SpecialKeyIcon, // Muted grey
 
-        toolbarBg        = Color(0xFF0E0E18),    // Slightly lighter than keyboardBg
+        toolbarBg        = PremiumBlackColors.ToolbarBg,
 
-        accentGradientStart = Color(0xFF7C5CFC), // Violet primary
-        accentGradientEnd   = Color(0xFFA78BFA), // Violet lighter (hover / capslock)
-        enterKeyBg       = Color(0xFF7C5CFC),    // Solid violet — no gradient on key
+        // Monochrome: "accent" / active states are the primary (white).
+        accentGradientStart = PremiumBlackColors.Primary,
+        accentGradientEnd   = PremiumBlackColors.Primary,
+        enterKeyBg       = PremiumBlackColors.ActionKeyBg,    // Solid white action key
 
         hasBorder        = true,
-        borderColor      = Color(0xFF252535)     // Very subtle 0.5dp border
+        borderColor      = PremiumBlackColors.KeyBorder
     ),
 
     // ── Premium White ─────────────────────────────────────────────────────────
-    // Warm white canvas, crisp keys, deeper violet for contrast on light bg.
     PREMIUM_WHITE(
         displayName      = "Premium White",
         isDark           = false,
 
-        keyboardBg       = Color(0xFFF2F2F7),    // iOS-style keyboard grey
-        keyFaceDefault   = Color(0xFFFFFFFF),    // Pure white key face
-        keyFaceDark      = Color(0xFFE8E8F0),    // Special key (slightly grey)
-        keyFacePressed   = Color(0xFFD8D8E8),    // Press state
-        keyText          = Color(0xFF1A1A2E),    // Near-black text for contrast
-        keyTextMuted     = Color(0xFF6B6B80),    // Muted: spacebar label, hints
+        keyboardBg       = PremiumWhiteColors.KeyboardBg,     // Light grey canvas
+        keyFaceDefault   = PremiumWhiteColors.KeyFace,        // Pure white key face
+        keyFaceDark      = PremiumWhiteColors.SpecialKeyBg,   // Special key (slightly grey)
+        keyFacePressed   = PremiumWhiteColors.KeyFacePressed, // Press state
+        keyText          = PremiumWhiteColors.KeyText,        // Near-black text
+        keyTextMuted     = PremiumWhiteColors.SpecialKeyIcon, // Muted grey
 
-        toolbarBg        = Color(0xFFFAFAFA),    // Off-white toolbar
+        toolbarBg        = PremiumWhiteColors.ToolbarBg,
 
-        accentGradientStart = Color(0xFF6C47FF), // Deeper violet (more contrast on white)
-        accentGradientEnd   = Color(0xFF8B6FFF), // Lighter violet
-        enterKeyBg       = Color(0xFF7C5CFC),    // Same violet brand colour
+        // Monochrome: "accent" / active states are the primary (black).
+        accentGradientStart = PremiumWhiteColors.Primary,
+        accentGradientEnd   = PremiumWhiteColors.Primary,
+        enterKeyBg       = PremiumWhiteColors.ActionKeyBg,    // Solid black action key
 
         hasBorder        = true,
-        borderColor      = Color(0xFFDCDCE5)     // Light grey border on white keys
+        borderColor      = PremiumWhiteColors.KeyBorder
     );
 
     companion object {

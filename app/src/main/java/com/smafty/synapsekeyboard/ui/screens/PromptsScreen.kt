@@ -41,19 +41,22 @@ import androidx.compose.ui.unit.sp
 import com.smafty.synapsekeyboard.data.local.SynapseDatabase
 import com.smafty.synapsekeyboard.data.local.entity.CustomPromptEntity
 import com.smafty.synapsekeyboard.data.local.entity.MostUsedPromptEntity
+import com.smafty.synapsekeyboard.ui.theme.ThemeManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.animation.core.LinearOutSlowInEasing
 
-// ── Premium Minimal design tokens ────────────────────────────────────────────
-private val PR_Bg      = Color(0xFF0A0A0F)
-private val PR_Surface = Color(0xFF141420)
-private val PR_Border  = Color(0xFF2A2A3A)
-private val PR_Violet  = Color(0xFF7C5CFC)
-private val PR_Text    = Color(0xFFF0F0F5)
-private val PR_Muted   = Color(0xFF8888A0)
-private val PR_Amber   = Color(0xFFFBBF24) // reference sparkle yellow
+// ── Monochrome design tokens — all values resolve to ThemeManager (single source of truth).
+private val PR_Bg: Color          get() = ThemeManager.currentTheme.background
+private val PR_Surface: Color     get() = ThemeManager.currentTheme.surface
+private val PR_SurfaceHigh: Color get() = ThemeManager.currentTheme.surfaceElevated
+private val PR_Border: Color      get() = ThemeManager.currentTheme.border
+private val PR_Primary: Color     get() = ThemeManager.currentTheme.primary
+private val PR_OnPrimary: Color   get() = ThemeManager.currentTheme.background
+private val PR_Text: Color        get() = ThemeManager.currentTheme.textPrimary
+private val PR_Muted: Color       get() = ThemeManager.currentTheme.textSecondary
+private val PR_Error: Color       get() = ThemeManager.currentTheme.error
 
 // ── Built-in preset prompts (hardcoded) ──────────────────────────────────────
 data class PresetPrompt(val id: String, val title: String, val instruction: String)
@@ -160,7 +163,7 @@ fun PromptsScreen() {
                             )
                             Icon(
                                 Icons.Rounded.Refresh, contentDescription = "Loading",
-                                tint = PR_Violet, modifier = Modifier.size(22.dp).rotate(rotation)
+                                tint = PR_Primary, modifier = Modifier.size(22.dp).rotate(rotation)
                             )
                         } else {
                             IconButton(
@@ -198,13 +201,13 @@ fun PromptsScreen() {
                     }
                 },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = PR_Violet,
+                    focusedBorderColor = PR_Primary,
                     unfocusedBorderColor = PR_Border,
                     focusedContainerColor = PR_Surface,
                     unfocusedContainerColor = PR_Surface,
                     focusedTextColor = PR_Text,
                     unfocusedTextColor = PR_Text,
-                    cursorColor = PR_Violet
+                    cursorColor = PR_Primary
                 ),
                 shape = RoundedCornerShape(12.dp),
                 singleLine = true,
@@ -231,7 +234,7 @@ fun PromptsScreen() {
                             .weight(1f)
                             .height(38.dp)
                             .clip(RoundedCornerShape(16.dp))
-                            .background(if (selected) PR_Violet else Color.Transparent)
+                            .background(if (selected) PR_Primary else Color.Transparent)
                             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { selectedTab = tab },
                         contentAlignment = Alignment.Center
                     ) {
@@ -242,12 +245,12 @@ fun PromptsScreen() {
                             Icon(
                                 imageVector        = tab.icon,
                                 contentDescription = null,
-                                tint               = if (selected) Color.White else PR_Muted,
+                                tint               = if (selected) PR_OnPrimary else PR_Muted,
                                 modifier           = Modifier.size(14.dp)
                             )
                             Text(
                                 text       = tab.label,
-                                color      = if (selected) Color.White else PR_Muted,
+                                color      = if (selected) PR_OnPrimary else PR_Muted,
                                 fontSize   = 12.sp,
                                 fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
                             )
@@ -322,14 +325,12 @@ fun PromptsScreen() {
         ) {
             FloatingActionButton(
                 onClick = { editingPrompt = null; showSheet = true },
-                modifier = Modifier
-                    .size(56.dp)
-                    .shadow(8.dp, CircleShape, spotColor = PR_Violet.copy(alpha = 0.4f)),
+                modifier = Modifier.size(56.dp),
                 shape = CircleShape,
-                containerColor = PR_Violet,
-                contentColor = Color.White
+                containerColor = PR_Primary,
+                contentColor = PR_OnPrimary
             ) {
-                Icon(Icons.Rounded.Add, contentDescription = "Add Prompt", tint = Color.White, modifier = Modifier.size(26.dp))
+                Icon(Icons.Rounded.Add, contentDescription = "Add Prompt", tint = PR_OnPrimary, modifier = Modifier.size(26.dp))
             }
         }
     }
@@ -381,7 +382,7 @@ fun PromptsScreen() {
                 TextButton(onClick = {
                     scope.launch { com.smafty.synapsekeyboard.data.local.repository.CustomPromptRepository.deletePrompt(target.id) }
                     promptToDelete = null
-                }) { Text("Delete", color = Color(0xFFEF4444), fontWeight = FontWeight.Bold) }
+                }) { Text("Delete", color = PR_Error, fontWeight = FontWeight.Bold) }
             },
             dismissButton = {
                 TextButton(onClick = { promptToDelete = null }) { Text("Cancel", color = PR_Muted) }
@@ -406,11 +407,11 @@ fun PromptsScreen() {
                         onValueChange = { deleteAllConfirmText = it },
                         placeholder = { Text("Type: Delete", color = PR_Muted.copy(alpha = 0.4f)) },
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFFEF4444),
+                            focusedBorderColor = PR_Error,
                             unfocusedBorderColor = PR_Border,
                             focusedTextColor = PR_Text,
                             unfocusedTextColor = PR_Text,
-                            cursorColor = Color(0xFFEF4444)
+                            cursorColor = PR_Error
                         ),
                         shape = RoundedCornerShape(10.dp),
                         singleLine = true
@@ -427,7 +428,7 @@ fun PromptsScreen() {
                 ) {
                     Text(
                         text       = "Confirm Delete",
-                        color      = if (deleteAllConfirmText == "Delete") Color(0xFFEF4444) else PR_Muted.copy(alpha = 0.4f),
+                        color      = if (deleteAllConfirmText == "Delete") PR_Error else PR_Muted.copy(alpha = 0.4f),
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -451,7 +452,7 @@ fun PromptsScreen() {
                 TextButton(onClick = {
                     scope.launch(Dispatchers.IO) { db.mostUsedPromptDao().deleteAll() }
                     showResetUsageDialog = false
-                }) { Text("Reset", color = Color(0xFFEF4444), fontWeight = FontWeight.Bold) }
+                }) { Text("Reset", color = PR_Error, fontWeight = FontWeight.Bold) }
             },
             dismissButton = {
                 TextButton(onClick = { showResetUsageDialog = false }) { Text("Cancel", color = PR_Muted) }
@@ -501,17 +502,17 @@ private fun CustomPromptCard(
             modifier = Modifier
                 .width(4.dp)
                 .height(60.dp)
-                .background(PR_Violet)
+                .background(PR_Primary)
         )
         Spacer(Modifier.width(14.dp))
         Box(
             modifier = Modifier
                 .size(36.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .background(PR_Violet.copy(alpha = 0.15f)),
+                .background(PR_Primary.copy(alpha = 0.15f)),
             contentAlignment = Alignment.Center
         ) {
-            Text("${index + 1}", color = PR_Violet, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Text("${index + 1}", color = PR_Primary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
         }
         Spacer(Modifier.width(12.dp))
         Column(
@@ -527,7 +528,7 @@ private fun CustomPromptCard(
             Icon(Icons.Rounded.Edit, contentDescription = "Edit", tint = PR_Muted, modifier = Modifier.size(18.dp))
         }
         IconButton(onClick = onDelete, modifier = Modifier.size(36.dp)) {
-            Icon(Icons.Rounded.Delete, contentDescription = "Delete", tint = Color(0xFFEF4444).copy(alpha = 0.8f), modifier = Modifier.size(18.dp))
+            Icon(Icons.Rounded.Delete, contentDescription = "Delete", tint = PR_Error.copy(alpha = 0.8f), modifier = Modifier.size(18.dp))
         }
         Spacer(Modifier.width(4.dp))
     }
@@ -566,20 +567,20 @@ private fun PresetPromptCard(preset: PresetPrompt, index: Int) {
             modifier = Modifier
                 .width(4.dp)
                 .height(60.dp)
-                .background(PR_Violet)
+                .background(PR_Primary)
         )
         Spacer(Modifier.width(14.dp))
         Box(
             modifier = Modifier
                 .size(36.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .background(PR_Violet.copy(alpha = 0.15f)),
+                .background(PR_Primary.copy(alpha = 0.15f)),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector        = Icons.Rounded.Verified,
                 contentDescription = null,
-                tint               = PR_Violet,
+                tint               = PR_Primary,
                 modifier           = Modifier.size(16.dp)
             )
         }
@@ -597,10 +598,10 @@ private fun PresetPromptCard(preset: PresetPrompt, index: Int) {
         Box(
             modifier = Modifier
                 .clip(RoundedCornerShape(8.dp))
-                .background(PR_Violet.copy(alpha = 0.15f))
+                .background(PR_Primary.copy(alpha = 0.15f))
                 .padding(horizontal = 8.dp, vertical = 4.dp)
         ) {
-            Text("Built-in", color = PR_Violet, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+            Text("Built-in", color = PR_Primary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
         }
         Spacer(Modifier.width(12.dp))
     }
@@ -639,17 +640,17 @@ private fun MostActiveCard(prompt: MostUsedPromptEntity, index: Int, onResetUsag
             modifier = Modifier
                 .width(4.dp)
                 .height(60.dp)
-                .background(PR_Amber)
+                .background(PR_Primary)
         )
         Spacer(Modifier.width(14.dp))
         Box(
             modifier = Modifier
                 .size(36.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .background(PR_Amber.copy(alpha = 0.15f)),
+                .background(PR_Primary.copy(alpha = 0.15f)),
             contentAlignment = Alignment.Center
         ) {
-            Text("#${index + 1}", color = PR_Amber, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+            Text("#${index + 1}", color = PR_Primary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
         }
         Spacer(Modifier.width(12.dp))
         Column(
@@ -678,13 +679,13 @@ private fun EmptyState(title: String, subtitle: String, showAdd: Boolean, onAdd:
             modifier = Modifier
                 .size(80.dp)
                 .clip(RoundedCornerShape(20.dp))
-                .background(PR_Violet.copy(alpha = 0.15f)),
+                .background(PR_Primary.copy(alpha = 0.15f)),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector        = Icons.Rounded.AutoAwesome,
                 contentDescription = null,
-                tint               = PR_Violet,
+                tint               = PR_Primary,
                 modifier           = Modifier.size(36.dp)
             )
         }
@@ -696,7 +697,7 @@ private fun EmptyState(title: String, subtitle: String, showAdd: Boolean, onAdd:
             Spacer(Modifier.height(24.dp))
             Button(
                 onClick = onAdd,
-                colors  = ButtonDefaults.buttonColors(containerColor = PR_Violet),
+                colors  = ButtonDefaults.buttonColors(containerColor = PR_Primary),
                 shape   = RoundedCornerShape(12.dp),
                 modifier = Modifier.height(44.dp)
             ) {
@@ -755,17 +756,17 @@ private fun PromptBottomSheet(
             },
             supportingText = {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    if (titleError) Text("Max $titleMaxChars chars for keyboard display", color = Color(0xFFEF4444), fontSize = 11.sp) else Spacer(Modifier.weight(1f))
+                    if (titleError) Text("Max $titleMaxChars chars for keyboard display", color = PR_Error, fontSize = 11.sp) else Spacer(Modifier.weight(1f))
                     Text("${titleText.length}/$titleMaxChars", color = PR_Muted.copy(alpha = 0.6f), fontSize = 11.sp)
                 }
             },
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = PR_Violet,
+                focusedBorderColor = PR_Primary,
                 unfocusedBorderColor = PR_Border,
                 focusedTextColor = PR_Text,
                 unfocusedTextColor = PR_Text,
-                cursorColor = PR_Violet,
-                errorBorderColor = Color(0xFFEF4444)
+                cursorColor = PR_Primary,
+                errorBorderColor = PR_Error
             ),
             shape = RoundedCornerShape(12.dp),
             singleLine = true,
@@ -788,11 +789,11 @@ private fun PromptBottomSheet(
                 }
             },
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = PR_Violet,
+                focusedBorderColor = PR_Primary,
                 unfocusedBorderColor = PR_Border,
                 focusedTextColor = PR_Text,
                 unfocusedTextColor = PR_Text,
-                cursorColor = PR_Violet
+                cursorColor = PR_Primary
             ),
             shape = RoundedCornerShape(12.dp),
             minLines = 3, maxLines = 5,
@@ -802,7 +803,7 @@ private fun PromptBottomSheet(
         Button(
             onClick = { if (isValid) onSave(titleText.trim(), instructionText.trim()) },
             enabled = isValid,
-            colors = ButtonDefaults.buttonColors(containerColor = PR_Violet, disabledContainerColor = PR_Violet.copy(alpha = 0.4f)),
+            colors = ButtonDefaults.buttonColors(containerColor = PR_Primary, disabledContainerColor = PR_Primary.copy(alpha = 0.4f)),
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier.fillMaxWidth().height(50.dp)
         ) {
@@ -826,8 +827,8 @@ private fun PasteIconButton(
             modifier = Modifier
                 .padding(end = 4.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .background(PR_Violet.copy(alpha = 0.12f))
-                .border(1.dp, PR_Violet.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                .background(PR_Primary.copy(alpha = 0.12f))
+                .border(1.dp, PR_Primary.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
                 .clickable(onClick = onPaste)
                 .padding(horizontal = 10.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -835,9 +836,9 @@ private fun PasteIconButton(
         ) {
             Icon(
                 Icons.Rounded.ContentPaste, contentDescription = label,
-                tint = PR_Violet, modifier = Modifier.size(15.dp)
+                tint = PR_Primary, modifier = Modifier.size(15.dp)
             )
-            Text(label, color = PR_Violet, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            Text(label, color = PR_Primary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
         }
     } else {
         IconButton(onClick = onPaste) {

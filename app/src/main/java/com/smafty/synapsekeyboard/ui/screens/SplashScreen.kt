@@ -39,12 +39,13 @@ import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import com.smafty.synapsekeyboard.ui.theme.ThemeManager
 
-// Premium Minimal Design System tokens (inline for splash — no theme dependency)
-private val BgColor      = Color(0xFF0A0A0F)
-private val VioletAccent = Color(0xFF7C5CFC)
-private val TextPrimary  = Color(0xFFF0F0F5)
-private val TextMuted    = Color(0xFF8888A0)
+// ── Monochrome design tokens — all values resolve to ThemeManager (single source of truth).
+private val BgColor: Color       get() = ThemeManager.currentTheme.background
+private val PrimaryAccent: Color get() = ThemeManager.currentTheme.primary
+private val TextPrimary: Color   get() = ThemeManager.currentTheme.textPrimary
+private val TextMuted: Color     get() = ThemeManager.currentTheme.textSecondary
 
 /**
  * SplashScreen — Phase 3 redesign.
@@ -116,7 +117,7 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
                         .size(160.dp)
                         .scale(pulseScale)
                         .clip(CircleShape)
-                        .background(VioletAccent.copy(alpha = pulseAlpha))
+                        .background(PrimaryAccent.copy(alpha = pulseAlpha))
                 )
                 LottieAnimation(
                     composition = composition,

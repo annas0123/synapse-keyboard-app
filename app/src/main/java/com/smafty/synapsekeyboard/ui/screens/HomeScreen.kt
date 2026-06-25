@@ -74,19 +74,25 @@ import com.smafty.synapsekeyboard.auth.AuthManager
 import com.smafty.synapsekeyboard.auth.SupabaseClientProvider
 import com.smafty.synapsekeyboard.data.local.SynapseDatabase
 import com.smafty.synapsekeyboard.data.local.repository.EnergyQuotaRepository
+import com.smafty.synapsekeyboard.ui.theme.ThemeManager
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.status.SessionStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-// ── Premium Minimal design tokens ────────────────────────────────────────────
-private val HS_Bg      = Color(0xFF0A0A0F)
-private val HS_Surface = Color(0xFF141420)
-private val HS_Border  = Color(0xFF2A2A3A)
-private val HS_Violet  = Color(0xFF7C5CFC)
-private val HS_Text    = Color(0xFFF0F0F5)
-private val HS_Muted   = Color(0xFF8888A0)
-private val HS_Success = Color(0xFF34D399)
+// ── Monochrome design tokens — all values resolve to ThemeManager (single source of truth).
+private val HS_Bg: Color          get() = ThemeManager.currentTheme.background
+private val HS_Surface: Color     get() = ThemeManager.currentTheme.surface
+private val HS_SurfaceHigh: Color get() = ThemeManager.currentTheme.surfaceElevated
+private val HS_Border: Color      get() = ThemeManager.currentTheme.border
+private val HS_Primary: Color     get() = ThemeManager.currentTheme.primary
+private val HS_OnPrimary: Color   get() = ThemeManager.currentTheme.background
+private val HS_Text: Color        get() = ThemeManager.currentTheme.textPrimary
+private val HS_Muted: Color       get() = ThemeManager.currentTheme.textSecondary
+// Status colors — used ONLY on tiny status dots, never on text/backgrounds.
+private val HS_Success: Color     get() = ThemeManager.currentTheme.success
+private val HS_Warning: Color     get() = ThemeManager.currentTheme.warning
+private val HS_Error: Color       get() = ThemeManager.currentTheme.error
 
 // ---------------------------------------------------------------------------
 // Home Screen — all backend logic unchanged, UI layer upgraded
@@ -165,19 +171,6 @@ fun HomeScreen() {
                 enter   = fadeIn(tween(400)) + slideInVertically(tween(400)) { -24 }
             ) {
                 Column {
-                    // Gradient accent line above heading
-                    Box(
-                        modifier = Modifier
-                            .width(36.dp)
-                            .height(3.dp)
-                            .clip(RoundedCornerShape(2.dp))
-                            .background(
-                                Brush.horizontalGradient(
-                                    listOf(HS_Violet, HS_Violet.copy(alpha = 0.0f))
-                                )
-                            )
-                    )
-                    Spacer(Modifier.height(8.dp))
                     Text(
                         text       = "Dashboard",
                         fontSize   = 24.sp,
@@ -263,9 +256,9 @@ fun HomeScreen() {
                         modifier              = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        StatTile("Prompts Today", "$promptsToday", Icons.Rounded.RocketLaunch, Color(0xFF3B82F6), Modifier.weight(1f))
-                        StatTile("Energy Today",  "$energyToday",  Icons.Rounded.Bolt,         HS_Success,        Modifier.weight(1f))
-                        StatTile("Total Prompts", "$totalPrompts", Icons.Rounded.Functions,    Color(0xFFEC4899), Modifier.weight(1f))
+                        StatTile("Prompts Today", "$promptsToday", Icons.Rounded.RocketLaunch, Modifier.weight(1f))
+                        StatTile("Energy Today",  "$energyToday",  Icons.Rounded.Bolt,         Modifier.weight(1f))
+                        StatTile("Total Prompts", "$totalPrompts", Icons.Rounded.Functions,    Modifier.weight(1f))
                     }
                 } else {
                     QuickStatsRow(promptsToday, energyToday, totalPrompts)
@@ -288,10 +281,11 @@ private fun KeyboardStatusCard(
     onSetDefaultClick: () -> Unit
 ) {
     val isFullyActive = isEnabled && isDefault
+    // Status color is used ONLY on the tiny live-indicator dot.
     val statusColor = when {
         isFullyActive -> HS_Success
-        isEnabled     -> Color(0xFFFBBF24)
-        else          -> Color(0xFFF87171)
+        isEnabled     -> HS_Warning
+        else          -> HS_Error
     }
     val statusLabel = when {
         isFullyActive -> "Active & Running"
@@ -305,14 +299,14 @@ private fun KeyboardStatusCard(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(statusColor.copy(alpha = 0.12f))
-                    .border(1.dp, statusColor.copy(alpha = 0.28f), RoundedCornerShape(12.dp)),
+                    .background(HS_SurfaceHigh)
+                    .border(1.dp, HS_Border, RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector        = if (isFullyActive) Icons.Rounded.CheckCircle else Icons.Rounded.Warning,
                     contentDescription = null,
-                    tint               = statusColor,
+                    tint               = HS_Text,
                     modifier           = Modifier.size(26.dp)
                 )
             }
@@ -329,16 +323,15 @@ private fun KeyboardStatusCard(
                     text       = statusLabel,
                     fontSize   = 15.sp,
                     fontWeight = FontWeight.Bold,
-                    color      = statusColor
+                    color      = HS_Text
                 )
             }
-            // Live indicator dot
+            // Live indicator dot — the only place a status color appears
             Box(
                 modifier = Modifier
                     .size(8.dp)
                     .clip(RoundedCornerShape(4.dp))
                     .background(statusColor)
-                    .shadow(4.dp, RoundedCornerShape(4.dp), spotColor = statusColor)
             )
         }
 
@@ -352,13 +345,13 @@ private fun KeyboardStatusCard(
             )
             Button(
                 onClick  = onEnableClick,
-                colors   = ButtonDefaults.buttonColors(containerColor = HS_Violet),
+                colors   = ButtonDefaults.buttonColors(containerColor = HS_Primary, contentColor = HS_OnPrimary),
                 shape    = RoundedCornerShape(14.dp),
                 modifier = Modifier.fillMaxWidth().height(46.dp)
             ) {
-                Text("Open Manage Keyboards", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                Text("Open Manage Keyboards", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = HS_OnPrimary)
                 Spacer(Modifier.width(8.dp))
-                Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, null, Modifier.size(16.dp))
+                Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, null, Modifier.size(16.dp), tint = HS_OnPrimary)
             }
         }
 
@@ -372,13 +365,13 @@ private fun KeyboardStatusCard(
             )
             Button(
                 onClick  = onSetDefaultClick,
-                colors   = ButtonDefaults.buttonColors(containerColor = HS_Success),
+                colors   = ButtonDefaults.buttonColors(containerColor = HS_Primary, contentColor = HS_OnPrimary),
                 shape    = RoundedCornerShape(14.dp),
                 modifier = Modifier.fillMaxWidth().height(46.dp)
             ) {
-                Text("Set as Default", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
+                Text("Set as Default", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = HS_OnPrimary)
                 Spacer(Modifier.width(8.dp))
-                Icon(Icons.Rounded.CheckCircle, null, Modifier.size(16.dp), tint = Color.White)
+                Icon(Icons.Rounded.CheckCircle, null, Modifier.size(16.dp), tint = HS_OnPrimary)
             }
         }
     }
@@ -398,10 +391,13 @@ private fun EnergyQuotaCard(energyUsed: Int, energyAllowed: Int) {
         label         = "energyGauge"
     )
 
-    val gaugeColor = when {
+    // Gauge is grayscale; only the tiny status dot carries a status color.
+    val trackColor    = HS_SurfaceHigh
+    val progressColor = HS_Primary
+    val statusDotColor = when {
         fraction >= 0.5f -> HS_Success
-        fraction >= 0.2f -> Color(0xFFFBBF24)
-        else             -> Color(0xFFF87171)
+        fraction >= 0.2f -> HS_Warning
+        else             -> HS_Error
     }
     val statusLabel = when {
         energyRemaining <= 0  -> "Out of Energy"
@@ -422,14 +418,14 @@ private fun EnergyQuotaCard(energyUsed: Int, energyAllowed: Int) {
                     val inset  = stroke / 2f
                     val arcSz  = Size(size.width - stroke, size.height - stroke)
                     drawArc(
-                        color      = gaugeColor.copy(alpha = 0.12f),
+                        color      = trackColor,
                         startAngle = 135f, sweepAngle = 270f, useCenter = false,
                         topLeft    = Offset(inset, inset), size = arcSz,
                         style      = Stroke(stroke, cap = StrokeCap.Round)
                     )
                     if (animatedFraction > 0f) {
                         drawArc(
-                            brush      = Brush.sweepGradient(listOf(gaugeColor.copy(0.6f), gaugeColor, gaugeColor)),
+                            color      = progressColor,
                             startAngle = 135f, sweepAngle = 270f * animatedFraction, useCenter = false,
                             topLeft    = Offset(inset, inset), size = arcSz,
                             style      = Stroke(stroke, cap = StrokeCap.Round)
@@ -437,7 +433,7 @@ private fun EnergyQuotaCard(energyUsed: Int, energyAllowed: Int) {
                     }
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("$energyRemaining", fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, color = gaugeColor)
+                    Text("$energyRemaining", fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, color = HS_Text)
                     Text("left", fontSize = 9.sp, color = HS_Muted)
                 }
             }
@@ -445,21 +441,22 @@ private fun EnergyQuotaCard(energyUsed: Int, energyAllowed: Int) {
             Column(modifier = Modifier.weight(1f)) {
                 Text("AI ENERGY", fontSize = 12.sp, color = HS_Muted, letterSpacing = 1.0.sp)
                 Spacer(Modifier.height(3.dp))
-                Text(text = statusLabel, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = gaugeColor)
+                Text(text = statusLabel, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = HS_Text)
                 Spacer(Modifier.height(10.dp))
                 Row(
                     modifier          = Modifier
                         .clip(RoundedCornerShape(8.dp))
-                        .background(gaugeColor.copy(alpha = 0.10f))
+                        .background(HS_SurfaceHigh)
+                        .border(1.dp, HS_Border, RoundedCornerShape(8.dp))
                         .padding(horizontal = 8.dp, vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
-                    Box(Modifier.size(6.dp).clip(RoundedCornerShape(3.dp)).background(gaugeColor))
-                    Text("$energyUsed / $energyAllowed used", style = MaterialTheme.typography.bodySmall, color = gaugeColor.copy(0.85f))
+                    Box(Modifier.size(6.dp).clip(RoundedCornerShape(3.dp)).background(statusDotColor))
+                    Text("$energyUsed / $energyAllowed used", style = MaterialTheme.typography.bodySmall, color = HS_Muted)
                 }
                 Spacer(Modifier.height(5.dp))
-                Text("Pay-as-you-go credit", style = MaterialTheme.typography.labelSmall, color = HS_Muted.copy(0.45f))
+                Text("Pay-as-you-go credit", style = MaterialTheme.typography.labelSmall, color = HS_Muted)
             }
         }
     }
@@ -471,20 +468,21 @@ private fun EnergyQuotaCard(energyUsed: Int, energyAllowed: Int) {
 @Composable
 private fun OfflineSyncCard(pendingRequests: Int) {
     val isSynced  = pendingRequests == 0
-    val syncColor = if (isSynced) HS_Success else Color(0xFFFBBF24)
+    // Status color appears only on the tiny dot inside the pill.
+    val statusDotColor = if (isSynced) HS_Success else HS_Warning
     PremiumCard {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Box(
                 modifier = Modifier
                     .size(44.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(syncColor.copy(alpha = 0.12f))
-                    .border(1.dp, syncColor.copy(alpha = 0.22f), RoundedCornerShape(12.dp)),
+                    .background(HS_SurfaceHigh)
+                    .border(1.dp, HS_Border, RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector        = if (isSynced) Icons.Rounded.CloudDone else Icons.Rounded.CloudSync,
-                    contentDescription = null, tint = syncColor, modifier = Modifier.size(22.dp)
+                    contentDescription = null, tint = HS_Text, modifier = Modifier.size(22.dp)
                 )
             }
             Spacer(modifier = Modifier.width(14.dp))
@@ -495,20 +493,24 @@ private fun OfflineSyncCard(pendingRequests: Int) {
                     text       = if (isSynced) "All synced" else "$pendingRequests requests pending",
                     fontSize   = 14.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color      = syncColor
+                    color      = HS_Text
                 )
             }
             Spacer(modifier = Modifier.weight(1f))
-            Box(
+            Row(
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
-                    .background(syncColor.copy(alpha = 0.12f))
-                    .padding(horizontal = 10.dp, vertical = 5.dp)
+                    .background(HS_SurfaceHigh)
+                    .border(1.dp, HS_Border, RoundedCornerShape(8.dp))
+                    .padding(horizontal = 10.dp, vertical = 5.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(5.dp)
             ) {
+                Box(Modifier.size(6.dp).clip(RoundedCornerShape(3.dp)).background(statusDotColor))
                 Text(
                     text       = if (isSynced) "Live" else "Pending",
                     style      = MaterialTheme.typography.labelSmall,
-                    color      = syncColor,
+                    color      = HS_Muted,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -523,10 +525,10 @@ private fun OfflineSyncCard(pendingRequests: Int) {
 private fun QuickStatsRow(promptsToday: Int, energyToday: Int, totalPrompts: Int) {
     Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            StatTile("Prompts Today", "$promptsToday", Icons.Rounded.RocketLaunch, Color(0xFF3B82F6), Modifier.weight(1f))
-            StatTile("Energy Today",  "$energyToday",  Icons.Rounded.Bolt,         HS_Success,        Modifier.weight(1f))
+            StatTile("Prompts Today", "$promptsToday", Icons.Rounded.RocketLaunch, Modifier.weight(1f))
+            StatTile("Energy Today",  "$energyToday",  Icons.Rounded.Bolt,         Modifier.weight(1f))
         }
-        StatTile("Total Prompts", "$totalPrompts", Icons.Rounded.Functions, Color(0xFFEC4899), Modifier.fillMaxWidth())
+        StatTile("Total Prompts", "$totalPrompts", Icons.Rounded.Functions, Modifier.fillMaxWidth())
     }
 }
 
@@ -538,19 +540,18 @@ private fun StatTile(
     label: String,
     value: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
-    accentColor: Color,
     modifier: Modifier = Modifier
 ) {
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(accentColor.copy(alpha = 0.08f))
-            .border(0.5.dp, accentColor.copy(alpha = 0.20f), RoundedCornerShape(12.dp))
+            .background(HS_SurfaceHigh)
+            .border(1.dp, HS_Border, RoundedCornerShape(12.dp))
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
-            Icon(icon, null, tint = accentColor, modifier = Modifier.size(20.dp))
+            Icon(icon, null, tint = HS_Muted, modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.height(8.dp))
-            Text(value, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = accentColor)
+            Text(value, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = HS_Text)
             Spacer(modifier = Modifier.height(2.dp))
             Text(label, fontSize = 12.sp, color = HS_Muted)
         }

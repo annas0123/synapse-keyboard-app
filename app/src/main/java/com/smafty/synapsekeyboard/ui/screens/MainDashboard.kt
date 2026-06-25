@@ -23,14 +23,15 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.smafty.synapsekeyboard.ui.theme.ThemeManager
 
-// ── Premium Minimal design tokens ─────────────────────────────────────────────
-private val AppBg        = Color(0xFF0A0A0F)
-private val SurfaceBg    = Color(0xFF141420)
-private val BorderColor  = Color(0xFF2A2A3A)
-private val VioletAccent = Color(0xFF7C5CFC)
-private val TextActive   = Color(0xFFF0F0F5)
-private val TextInactive = Color(0xFF555570)
+// ── Monochrome design tokens — all values resolve to ThemeManager (single source of truth).
+private val AppBg: Color        get() = ThemeManager.currentTheme.background
+private val SurfaceBg: Color    get() = ThemeManager.currentTheme.surface
+private val BorderColor: Color  get() = ThemeManager.currentTheme.border
+private val PrimaryMuted: Color get() = ThemeManager.currentTheme.primaryMuted
+private val TextActive: Color   get() = ThemeManager.currentTheme.textPrimary
+private val TextInactive: Color get() = ThemeManager.currentTheme.textTertiary
 
 private data class NavItem(val icon: ImageVector, val label: String)
 private val navItems = listOf(
@@ -123,7 +124,7 @@ private fun PremiumNavBar(
             val isSelected = selectedTab == index
 
             val iconTint by animateColorAsState(
-                targetValue   = if (isSelected) VioletAccent else TextInactive,
+                targetValue   = if (isSelected) TextActive else TextInactive,
                 animationSpec = tween(150),
                 label         = "navIcon$index"
             )
@@ -140,7 +141,7 @@ private fun PremiumNavBar(
                     .clip(RoundedCornerShape(16.dp))
                     // Violet pill bg only on active tab (15% opacity, 32dp height implied by padding)
                     .background(
-                        if (isSelected) VioletAccent.copy(alpha = 0.15f) else Color.Transparent
+                        if (isSelected) PrimaryMuted else Color.Transparent
                     )
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },

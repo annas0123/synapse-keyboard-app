@@ -38,17 +38,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.smafty.synapsekeyboard.ui.keyboard.KeyboardTheme
+import com.smafty.synapsekeyboard.ui.theme.ThemeManager
 
-// ── Premium Minimal design tokens ─────────────────────────────────────────────
-private val KT_Bg           = Color(0xFF0A0A0F)
-private val KT_Surface      = Color(0xFF141420)
-private val KT_SurfaceHigh  = Color(0xFF1C1C2A)
-private val KT_Border       = Color(0xFF2A2A3A)
-private val KT_Violet       = Color(0xFF7C5CFC)
-private val KT_TextPrimary  = Color(0xFFF0F0F5)
-private val KT_TextSecond   = Color(0xFF8888A0)
-private val KT_Success      = Color(0xFF34D399)
-private val KT_Error        = Color(0xFFF87171)
+// ── Monochrome design tokens — all values resolve to ThemeManager (single source of truth).
+private val KT_Bg: Color          get() = ThemeManager.currentTheme.background
+private val KT_Surface: Color     get() = ThemeManager.currentTheme.surface
+private val KT_SurfaceHigh: Color get() = ThemeManager.currentTheme.surfaceElevated
+private val KT_Border: Color      get() = ThemeManager.currentTheme.border
+private val KT_Primary: Color     get() = ThemeManager.currentTheme.primary
+private val KT_OnPrimary: Color   get() = ThemeManager.currentTheme.background
+private val KT_TextPrimary: Color get() = ThemeManager.currentTheme.textPrimary
+private val KT_TextSecond: Color  get() = ThemeManager.currentTheme.textSecondary
+private val KT_Success: Color     get() = ThemeManager.currentTheme.success
+private val KT_Error: Color       get() = ThemeManager.currentTheme.error
 
 /**
  * KeyboardTestScreen — Phase 3 redesign.
@@ -143,7 +145,7 @@ fun KeyboardTestScreen(onBack: () -> Unit) {
                 Icon(
                     imageVector        = Icons.Rounded.Tune,
                     contentDescription = "Toggle Panel",
-                    tint               = if (showSettingsPanel) KT_Violet else KT_TextSecond
+                    tint               = if (showSettingsPanel) KT_Primary else KT_TextSecond
                 )
             }
             IconButton(onClick = {
@@ -153,7 +155,7 @@ fun KeyboardTestScreen(onBack: () -> Unit) {
                     context.startActivity(intent)
                 } catch (e: Exception) { }
             }) {
-                Icon(Icons.Rounded.Settings, contentDescription = "Settings", tint = KT_Violet)
+                Icon(Icons.Rounded.Settings, contentDescription = "Settings", tint = KT_Primary)
             }
         }
 
@@ -184,7 +186,8 @@ fun KeyboardTestScreen(onBack: () -> Unit) {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(Color(0xFFFBBF24).copy(alpha = 0.10f))
+                                .background(KT_SurfaceHigh)
+                                .border(1.dp, KT_Border, RoundedCornerShape(8.dp))
                                 .padding(horizontal = 12.dp, vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -194,7 +197,7 @@ fun KeyboardTestScreen(onBack: () -> Unit) {
                                 text     = if (!isEnabled) "Enable Synapse in keyboard settings first"
                                            else "Set Synapse as default keyboard",
                                 fontSize = 12.sp,
-                                color    = Color(0xFFFBBF24)
+                                color    = KT_TextSecond
                             )
                         }
                     }
@@ -217,7 +220,7 @@ fun KeyboardTestScreen(onBack: () -> Unit) {
                                 keyboardScale <= 1.20f -> "Large"
                                 else                   -> "Extra Large"
                             },
-                            color      = KT_Violet,
+                            color      = KT_Primary,
                             fontSize   = 13.sp,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -240,8 +243,8 @@ fun KeyboardTestScreen(onBack: () -> Unit) {
                         valueRange = 0.80f..1.30f,
                         steps      = 4,
                         colors     = SliderDefaults.colors(
-                            thumbColor         = KT_Violet,
-                            activeTrackColor   = KT_Violet,
+                            thumbColor         = KT_Primary,
+                            activeTrackColor   = KT_Primary,
                             inactiveTrackColor = KT_Border
                         )
                     )
@@ -259,7 +262,7 @@ fun KeyboardTestScreen(onBack: () -> Unit) {
                         SectionLabel(text = "KEYBOARD THEME")
                         Text(
                             text       = activeTheme.displayName,
-                            color      = KT_Violet,
+                            color      = KT_Primary,
                             fontSize   = 13.sp,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -292,7 +295,7 @@ fun KeyboardTestScreen(onBack: () -> Unit) {
                                         .background(themeItem.keyboardBg)
                                         .border(
                                             width = if (isSelected) 1.5.dp else 0.5.dp,
-                                            color = if (isSelected) KT_Violet else themeItem.borderColor,
+                                            color = if (isSelected) KT_Primary else themeItem.borderColor,
                                             shape = RoundedCornerShape(10.dp)
                                         )
                                         .padding(8.dp),
@@ -318,7 +321,7 @@ fun KeyboardTestScreen(onBack: () -> Unit) {
                                 }
                                 if (isSelected) {
                                     Spacer(modifier = Modifier.height(4.dp))
-                                    Text("✓", color = KT_Violet, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    Text("✓", color = KT_Primary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
@@ -355,7 +358,7 @@ fun KeyboardTestScreen(onBack: () -> Unit) {
                     fontSize   = 16.sp,
                     lineHeight = 26.sp
                 ),
-                cursorBrush = SolidColor(KT_Violet),
+                cursorBrush = SolidColor(KT_Primary),
                 decorationBox = { innerTextField ->
                     if (testText.isEmpty()) {
                         Text(
@@ -391,10 +394,10 @@ fun KeyboardTestScreen(onBack: () -> Unit) {
                     try { imm?.showInputMethodPicker() } catch (e: Exception) { }
                 },
                 modifier = Modifier.weight(1f).height(48.dp),
-                colors   = ButtonDefaults.buttonColors(containerColor = KT_Violet),
+                colors   = ButtonDefaults.buttonColors(containerColor = KT_Primary),
                 shape    = RoundedCornerShape(12.dp)
             ) {
-                Text("Switch Keyboard", fontWeight = FontWeight.Medium, color = Color.White)
+                Text("Switch Keyboard", fontWeight = FontWeight.Medium, color = KT_OnPrimary)
             }
         }
 

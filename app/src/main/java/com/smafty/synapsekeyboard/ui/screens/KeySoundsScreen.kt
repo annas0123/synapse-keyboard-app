@@ -57,14 +57,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.smafty.synapsekeyboard.ui.keyboard.KeySoundEngine
 import com.smafty.synapsekeyboard.ui.keyboard.KeySoundPreset
+import com.smafty.synapsekeyboard.ui.theme.ThemeManager
 
-// ── Premium Minimal design tokens ────────────────────────────────────────────
-private val KS_Bg      = Color(0xFF0A0A0F)
-private val KS_Surface = Color(0xFF141420)
-private val KS_Border  = Color(0xFF2A2A3A)
-private val KS_Violet  = Color(0xFF7C5CFC)
-private val KS_Text    = Color(0xFFF0F0F5)
-private val KS_Muted   = Color(0xFF8888A0)
+// ── Monochrome design tokens — all values resolve to ThemeManager (single source of truth).
+private val KS_Bg: Color        get() = ThemeManager.currentTheme.background
+private val KS_Surface: Color   get() = ThemeManager.currentTheme.surface
+private val KS_Border: Color    get() = ThemeManager.currentTheme.border
+private val KS_Primary: Color   get() = ThemeManager.currentTheme.primary
+private val KS_OnPrimary: Color get() = ThemeManager.currentTheme.background
+private val KS_Text: Color      get() = ThemeManager.currentTheme.textPrimary
+private val KS_Muted: Color     get() = ThemeManager.currentTheme.textSecondary
 
 // ---------------------------------------------------------------------------
 // Key Sounds Configuration Screen — Premium redesign
@@ -85,7 +87,7 @@ fun KeySoundsScreen(onBack: () -> Unit) {
     var visible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { visible = true }
 
-    val cyanAccent = KS_Violet   // unified violet accent
+    val cyanAccent = KS_Primary   // monochrome accent → primary
 
     Column(
         modifier = Modifier
@@ -200,7 +202,7 @@ fun KeySoundsScreen(onBack: () -> Unit) {
                             KeySoundEngine.savePreset(prefs, preset)
                         },
                         colors = SwitchDefaults.colors(
-                            checkedThumbColor    = Color.White,
+                            checkedThumbColor    = KS_OnPrimary,
                             checkedTrackColor    = cyanAccent,
                             uncheckedThumbColor  = KS_Muted,
                             uncheckedTrackColor  = KS_Border
@@ -217,26 +219,14 @@ fun KeySoundsScreen(onBack: () -> Unit) {
             visible = visible,
             enter   = fadeIn(tween(500, 140))
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier          = Modifier.padding(start = 4.dp, bottom = 12.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .width(3.dp)
-                        .height(11.dp)
-                        .clip(RoundedCornerShape(2.dp))
-                        .background(cyanAccent)
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text          = "SOUND PRESETS",
-                    fontSize      = 12.sp,
-                    color         = KS_Muted,
-                    fontWeight    = FontWeight.SemiBold,
-                    letterSpacing = 1.2.sp
-                )
-            }
+            Text(
+                text          = "SOUND PRESETS",
+                fontSize      = 12.sp,
+                color         = KS_Muted,
+                fontWeight    = FontWeight.SemiBold,
+                letterSpacing = 1.2.sp,
+                modifier      = Modifier.padding(start = 4.dp, bottom = 12.dp)
+            )
         }
 
         // ── Preset Cards ───────────────────────────────────────────────────────
