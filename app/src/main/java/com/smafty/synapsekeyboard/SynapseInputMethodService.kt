@@ -818,12 +818,17 @@ class SynapseInputMethodService :
         model: String,
         maxTokens: Int = 8192
     ): Pair<String, Pair<Int, Int>> {
-        val apiKey = BuildConfig.OPENROUTER_API_KEY
-        if (apiKey.isBlank()) {
-            throw IllegalStateException("OpenRouter API key is missing.")
+        val jwt = SupabaseClientProvider.client.auth.currentSessionOrNull()?.accessToken
+        if (jwt.isNullOrBlank()) {
+            throw IllegalStateException("You must sign in before using AI.")
         }
 
-        val url = "https://openrouter.ai/api/v1/chat/completions"
+        val supabaseUrl = BuildConfig.SUPABASE_URL.trimEnd('/')
+        if (supabaseUrl.isBlank()) {
+            throw IllegalStateException("Supabase URL is missing.")
+        }
+
+        val url = "$supabaseUrl/functions/v1/ai-proxy"
         val mediaType = "application/json; charset=utf-8".toMediaType()
 
         val systemPrompt = "You are a precise writing assistant integrated into an AI keyboard. " +
@@ -849,10 +854,8 @@ class SynapseInputMethodService :
         val request = Request.Builder()
             .url(url)
             .post(jsonPayload.toString().toRequestBody(mediaType))
-            .addHeader("Authorization", "Bearer $apiKey")
+            .addHeader("Authorization", "Bearer $jwt")
             .addHeader("Content-Type", "application/json")
-            .addHeader("HTTP-Referer", "https://synapsekeyboard.app")
-            .addHeader("X-Title", "Synapse AI Keyboard")
             .build()
 
         httpClient.newCall(request).execute().use { response ->

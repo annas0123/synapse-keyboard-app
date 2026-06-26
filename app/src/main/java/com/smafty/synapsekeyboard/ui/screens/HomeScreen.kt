@@ -1,8 +1,11 @@
 package com.smafty.synapsekeyboard.ui.screens
 
+import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import android.provider.Settings
 import android.view.inputmethod.InputMethodManager
+import androidx.activity.ComponentActivity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -45,6 +48,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -69,6 +73,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.repeatOnLifecycle
 import com.smafty.synapsekeyboard.auth.AuthManager
 import com.smafty.synapsekeyboard.auth.SupabaseClientProvider
@@ -93,6 +98,17 @@ private val HS_Muted: Color       get() = ThemeManager.currentTheme.textSecondar
 private val HS_Success: Color     get() = ThemeManager.currentTheme.success
 private val HS_Warning: Color     get() = ThemeManager.currentTheme.warning
 private val HS_Error: Color       get() = ThemeManager.currentTheme.error
+
+// Walk the Context wrapper chain to find the hosting Activity. Needed so we can
+// observe the *Activity* lifecycle (not the NavBackStackEntry) for ON_RESUME.
+private fun Context.findActivity(): ComponentActivity? {
+    var ctx: Context = this
+    while (ctx is ContextWrapper) {
+        if (ctx is ComponentActivity) return ctx
+        ctx = ctx.baseContext
+    }
+    return null
+}
 
 // ---------------------------------------------------------------------------
 // Home Screen — all backend logic unchanged, UI layer upgraded
@@ -133,9 +149,27 @@ fun HomeScreen() {
     val energyAllowed by EnergyQuotaRepository.energyAllowed.collectAsState()
     val energyUsed    by EnergyQuotaRepository.energyUsed.collectAsState()
 
+    // Refresh on first composition and whenever this screen re-enters
+    // composition (e.g. switching back to the Home tab).
+    LaunchedEffect(Unit) { refreshKeyboardStatus() }
+
+    // Re-check every time the host Activity resumes. This is the case that
+    // matters when the user returns from the system input-method settings after
+    // enabling Synapse: the NavBackStackEntry lifecycle that drives
+    // repeatOnLifecycle does not reliably re-fire here, so we observe the
+    // Activity lifecycle directly to update the status in real time.
+    val activity = remember(context) { context.findActivity() }
+    DisposableEffect(activity) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) refreshKeyboardStatus()
+        }
+        activity?.lifecycle?.addObserver(observer)
+        onDispose { activity?.lifecycle?.removeObserver(observer) }
+    }
+
+    // Keep energy quota in sync with the backend while the screen is resumed.
     LaunchedEffect(lifecycleOwner, currentUserId) {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-            refreshKeyboardStatus()
             if (currentUserId.isNotEmpty()) {
                 launch(Dispatchers.IO) {
                     EnergyQuotaRepository.syncEnergyFromRemote(context, currentUserId)

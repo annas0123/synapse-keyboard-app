@@ -24,14 +24,14 @@ enum class SynapseModel(
 ) {
     DEEPSEEK(
         key            = "DEEPSEEK",
-        displayName    = "DeepSeek V4 Flash",
+        displayName    = "Synapse S1",
         primaryModelId = "deepseek/deepseek-v4-flash",
         description    = "Fast, efficient model optimized for quick replies and casual writing.",
         isRecommended  = false
     ),
     MIMO(
         key            = "MIMO",
-        displayName    = "MiMo V2.5",
+        displayName    = "Synapse S2",
         primaryModelId = "xiaomi/mimo-v2.5",
         description    = "Advanced writing model designed for structured text and formatting.",
         isRecommended  = true

@@ -2129,17 +2129,28 @@ fun AiPromptsPanel(
 
     val tabLabels = listOf("⭐ Custom", "💎 Presets", "🔥 Active")
 
-    // Hardcoded presets — same list as PromptsScreen for consistency
-    val presets = listOf(
-        PromptData("Fix Grammar",    "Fix all grammar and spelling mistakes while keeping the original meaning and tone.",             Icons.Rounded.Spellcheck),
-        PromptData("Formal Tone",    "Rewrite this in a professional and formal tone suitable for a business email.",                  Icons.Rounded.BusinessCenter),
-        PromptData("Friendly Tone",  "Rewrite this in a warm, friendly and conversational tone.",                                     Icons.Rounded.SentimentSatisfied),
-        PromptData("Make Shorter",   "Shorten to key point in 1-2 concise sentences without losing the core message.",                Icons.Rounded.Compress),
-        PromptData("Translate Urdu", "Translate this text accurately to Urdu script. Return only the translated text.",               Icons.Rounded.Translate),
-        PromptData("Expand Text",    "Expand with more detail and depth while keeping the original intent.",                          Icons.Rounded.OpenInFull),
-        PromptData("Bullet Points",  "Convert this text into a clean bullet-point list of key facts.",                               Icons.Rounded.List),
-        PromptData("Email Subject",  "Generate a compelling email subject line for this text.",                                       Icons.Rounded.Email)
-    )
+    // Presets — single source of truth: SYNAPSE_PRESETS (shared with PromptsScreen).
+    // Mapped to PromptData so the keyboard panel shows the exact same list, with an
+    // icon assigned per preset id (falls back to AutoAwesome for any new preset).
+    val presets = com.smafty.synapsekeyboard.ui.screens.SYNAPSE_PRESETS.map { p ->
+        val icon = when (p.id) {
+            "fix_grammar"    -> Icons.Rounded.Spellcheck
+            "translate_en"   -> Icons.Rounded.Translate
+            "formal_tone"    -> Icons.Rounded.BusinessCenter
+            "make_shorter"   -> Icons.Rounded.Compress
+            "friendly_tone"  -> Icons.Rounded.SentimentSatisfied
+            "expand_text"    -> Icons.Rounded.OpenInFull
+            "bullet_points"  -> Icons.Rounded.List
+            "subject_line"   -> Icons.Rounded.Email
+            "reply_client"   -> Icons.Rounded.Reply
+            "match_job"      -> Icons.Rounded.Work
+            "reply_letter"   -> Icons.Rounded.Mail
+            "reddit_comment" -> Icons.Rounded.Forum
+            "translate_any"  -> Icons.Rounded.Language
+            else             -> Icons.Rounded.AutoAwesome
+        }
+        PromptData(p.title, p.instruction, icon)
+    }
 
     Column(
         modifier = Modifier
